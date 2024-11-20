@@ -33,7 +33,7 @@ components:
   schemas:
     GeneralId:
       type: object
-      description: id of a user, a conversation, a message or a comment
+      description: id of a user, a conversation, a group, a message or a comment
       properties:
         value:
           type: integer
@@ -133,6 +133,8 @@ components:
       properties:
         id:
           $ref: '#/components/schemas/GeneralId'
+        private_chat_id:
+          $ref: '#/components/schemas/GeneralId'
         name:
           $ref: '#/components/schemas/Username'
         message:
@@ -152,12 +154,14 @@ components:
           format: binary
           minLength: 1
           maxLength: 7000000
-      required: [id, name, message, other_user]
+      required: [id, private_chat_id, name, message, other_user]
     GroupConversation:
       type: object
       description: list of message of a group with other users
       properties:
         id:
+          $ref: '#/components/schemas/GeneralId'
+        group_id:
           $ref: '#/components/schemas/GeneralId'
         message:
           type: string
@@ -165,7 +169,7 @@ components:
           pattern: '^.*?$'
           minLength: 1
           maxLength: 9999
-      required: [id, message]
+      required: [id, group_id, message]
     Group:
       type: object
       description: group with other users
