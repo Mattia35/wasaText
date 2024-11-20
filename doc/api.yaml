@@ -281,7 +281,7 @@ paths:
         required: true
         schema:
           $ref: '#/components/schemas/GeneralId'
-    post:
+    put:
       security:
         - bearerAuth: []
       tags: ["creation of a private chat/group conversation"]
