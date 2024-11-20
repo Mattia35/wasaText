@@ -1,0 +1,967 @@
+openapi: 3.0.3
+info:
+  title: Simplified login API specification
+  description: |-
+    This OpenAPI document describes the simplified login API.
+    Copy and paste the API from the `paths` key to your OpenAPI document.
+  version: "1"
+  
+components:
+  securitySchemes:
+    bearerAuth: # arbitrary name for the security scheme
+      type: http
+      scheme: bearer
+      bearerFormat: JWT # optional, arbitrary value for documentation purposes
+  responses:
+    UnauthorizedError:
+      description: Access token is missing or invalid
+    InvalidRequestError:
+      description: bad request
+      content:
+        application/json:
+          schema:
+            description: '400 error'
+            type: object
+            properties:
+              message:
+                description: text of error message
+                type: string
+                pattern: '^.*?$'
+                minLength: 1
+                maxLength: 30
+                example: "Bad request, retry!" 
+  schemas:
+    GeneralId:
+      type: object
+      description: id of a user, a conversation, a message or a comment
+      properties:
+        value:
+          type: integer
+          description: id value
+          minimum: 0
+          maximum: 10000
+    Username:
+      type: object
+      description: username or name of private chat conversation
+      properties:
+        name:
+          type: string
+          description: | 
+            text that represents the username or name of private 
+            chat conversation
+          pattern: '^.*?$'
+          minLength: 3
+          maxLength: 16
+      required: [name]
+    Message:
+      type: object
+      description: message of a conversation
+      properties:
+        id:
+          $ref: '#/components/schemas/GeneralId'
+        date_time:
+          type: string
+          description: date and time of the message
+          format: date-time
+          pattern: '^\\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\\d|3[01])T([01]\\d|2[0-3]):[0-5]\\d$'
+          minLength: 16
+          maxLength: 16
+        text_or_photo:
+          description: content of the message, that could be a text or a photo
+          oneOf:
+            - type: string
+              description: message contains a text
+              pattern: '^.*?$'
+              minLength: 1
+              maxLength: 9999
+            - type: string
+              description: message contains a photo
+              format: binary
+              pattern: '^.*?$'
+              minLength: 1
+              maxLength: 7000000
+        sender_or_status:
+          oneOf:
+            - $ref: '#/components/schemas/GeneralId'
+            - type: boolean
+              description: |
+                boolean value that represents the checkmarks status 
+                of the message
+        comments:
+          type: object
+          description: list of message comments
+          properties:
+            items:
+              type: array
+              description: array that represents the list of message comments 
+              items:
+                $ref: '#/components/schemas/Comment'
+              minItems: 0
+              maxItems: 50
+          required: [items]
+      required: [id, date_time, text_or_photo, sender_or_status, comments]
+    Comment:
+      type: object
+      description: single message comment of the list
+      properties:
+        id:
+          $ref: '#/components/schemas/GeneralId'
+        date_time:
+          type: string
+          description: date and time of the comment
+          format: date-time
+          pattern: '^\\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\\d|3[01])T([01]\\d|2[0-3]):[0-5]\\d$'
+          minLength: 16
+          maxLength: 16
+        emoji:
+          description: content of the comment, that is a emoji
+          type: string
+          enum:
+            - "ok"
+            - "love"
+            - "wow"
+            - "ahah"
+            - "sad"
+            - "angry"
+            - "celebrate"
+        sender:
+          $ref: '#/components/schemas/GeneralId'
+      required: [id, date_time, emoji, sender]
+    PrivateChatConversation:
+      type: object
+      description: list of message of a private chat with another user
+      properties:
+        id:
+          $ref: '#/components/schemas/GeneralId'
+        name:
+          $ref: '#/components/schemas/Username'
+        message:
+          type: string
+          description: text of the last message in the conversation
+          pattern: '^.*?$'
+          minLength: 1
+          maxLength: 9999
+        other_user:
+          $ref: '#/components/schemas/GeneralId'
+        photo:
+          type: string
+          description: | 
+            profile photo of the other user, and therefore also of 
+            the private chat
+          pattern: '^.*?$'
+          format: binary
+          minLength: 1
+          maxLength: 7000000
+      required: [id, name, message, other_user]
+    GroupConversation:
+      type: object
+      description: list of message of a group with other users
+      properties:
+        id:
+          $ref: '#/components/schemas/GeneralId'
+        message:
+          type: string
+          description: text of the last message in the conversation
+          pattern: '^.*?$'
+          minLength: 1
+          maxLength: 9999
+      required: [id, message]
+    Group:
+      type: object
+      description: group with other users
+      properties:
+        id:
+          $ref: '#/components/schemas/GeneralId'
+        name:
+          type: string
+          description: text that represents the group name
+          pattern: '^.*?$'
+          minLength: 1
+          maxLength: 20
+        users:
+          description: ids array that represents the list of group users
+          type: array
+          items:
+            $ref: '#/components/schemas/GeneralId'
+          minItems: 1
+          maxItems: 50
+        photo:
+          type: string
+          description: group photo
+          pattern: '^.*?$'
+          format: binary
+          minLength: 1
+          maxLength: 7000000
+      required: [id, name, users]
+      
+tags:
+  - name: login
+    description: User authentication operations.
+  - name: creation of a private chat/group conversation
+    description: Operations for creating private or group chats.
+  - name: getting all conversations
+    description: Retrieve all user conversations.
+  - name: getting messages from a conversation
+    description: Fetch messages from a specific conversation.
+  - name: sending a message
+    description: Operations related to sending messages.
+  - name: forwarding of a message
+    description: Forward messages between conversations.
+  - name: deleting of a message
+    description: Delete a specific message.
+  - name: comment creation
+    description: Add comments to messages.
+  - name: deleting of a comment
+    description: Remove comments from messages.
+  - name: creation of a group
+    description: Create a new group.
+  - name: users group modify
+    description: Modify users within a group.
+  - name: deleting of a group
+    description: Delete a specific group.
+  - name: group photo modify
+    description: Update the photo of a group.
+  - name: group name modify
+    description: Change the name of a group.
+  - name: username modify
+    description: Update the username of a user.
+  - name: photo modify
+    description: Modify the user's profile photo.
+    
+paths:
+  /session:
+    post:
+      tags: ["login"]
+      summary: Logs in the user
+      description: |-
+        If the user does not exist, it will be created, and an identifier is returned. If the user exists, the user identifier is returned.
+      operationId: doLogin
+      requestBody:
+        description: User details
+        content:
+          application/json:
+            schema:
+              type: object
+              description: object that contains the new username in input
+              properties:
+                username:
+                  $ref: '#/components/schemas/Username'
+        required: true
+      responses:
+        '200':
+          description: User creation action successful
+          content:
+            application/json:
+              schema:
+                type: object
+                description: '200 response message'
+                properties:
+                  id:
+                    $ref: '#/components/schemas/GeneralId'
+        '201':
+          description: User log-in action successful
+          content:
+            application/json:
+              schema:
+                type: object
+                description: '201 response message'
+                properties:
+                  id:
+                    $ref: '#/components/schemas/GeneralId'
+        '400':
+          $ref: '#/components/responses/InvalidRequestError'
+  
+  
+  /session/{user}/conversations:
+    description: user area where he can read and create chats
+    parameters:
+      - name: user
+        description: user id
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/GeneralId'
+    post:
+      security:
+        - bearerAuth: []
+      tags: ["creation of a private chat/group conversation"]
+      summary: New chat or group conversation is created
+      description: |
+        User creates a new chat with a other user or a new group with some users
+      operationId: conversationCreation
+      requestBody:
+        description: choose between group or private chat, represented by a id
+        content:
+          application/json:
+            schema:
+              type: object
+              description: object that contains a group id or a user id in input
+              properties:
+                group_id_or_user_id:
+                  $ref: '#/components/schemas/GeneralId'
+        required: true
+      responses:
+        '201':
+          description: New chat creaction action successful
+          content:
+            application/json:
+              schema:
+                description: '201 response message'
+                oneOf:
+                - $ref: '#/components/schemas/PrivateChatConversation'
+                - $ref: '#/components/schemas/GroupConversation'
+        '400':
+          $ref: '#/components/responses/InvalidRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    get:
+      security:
+        - bearerAuth: []
+      tags: ["getting all conversations"]
+      operationId: getMyConversations
+      summary: gets a conversations list
+      description: User gets all conversations
+      responses:
+        '200':
+          description: |
+            an array of object, each one contains a name, a message,
+            a array users and a photo
+          content:
+            application/json:
+              schema:
+                type: object
+                description: '200 response message'
+                properties: 
+                  conversations:
+                    description: conversations array in output
+                    type: array
+                    items:
+                      oneOf:
+                       - $ref: '#/components/schemas/PrivateChatConversation'
+                       - $ref: '#/components/schemas/GroupConversation'
+                    minItems: 0
+                    maxItems: 10000
+                required: [conversations]
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+          
+  /session/{user}/conversations/{id}:
+    description: | 
+      user area where he can do an interaction with a chat,
+      identified by the id
+    parameters:
+      - name: user
+        description: user id
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/GeneralId'
+      - name: id
+        description: conversation id
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/GeneralId'
+    get:
+      security:
+        - bearerAuth: []
+      tags: ["getting messages from a conversation"]
+      operationId: getConversation
+      summary: gets a messages list of a conversation
+      description: | 
+        User gets all messages of a conversation that is 
+        identified by a id
+      responses:
+        '200':
+          description: |
+            an array of object, each one contains a name, a message,
+            a array users and a photo
+          content:
+            application/json:
+              schema:
+                type: object
+                description: '200 response message'
+                properties:
+                  items:
+                    description: messages array in output
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Message'
+                    minItems: 0
+                    maxItems: 1000000
+                required: [items]
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    post:
+      security:
+        - bearerAuth: []
+      tags: ["sending a message"]
+      operationId: sendMessage
+      summary: sends a message (so, adds it to list of messages a conversation)
+      description: | 
+        User sends a message to the other user/s
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              description: object that contains a message text in input
+              properties:
+                text:
+                  description: message text in input
+                  type: string
+                  pattern: '^.*?$'
+                  minLength: 1
+                  maxLength: 9999
+        required: true
+      responses:
+        '201':
+          description: New message sending action successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+        '400':
+          $ref: '#/components/responses/InvalidRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+  
+  /session/{user}/conversations/{id}/messages/{mess_id}:
+    description: message area, where user can forward it
+    parameters:
+      - name: user
+        description: user id
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/GeneralId'
+      - name: id
+        description: conversation id
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/GeneralId'
+      - name: mess_id
+        description: message id
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/GeneralId'
+    post:
+      security:
+        - bearerAuth: []
+      tags: ["forwarding of a message"]
+      operationId: forwardMessage
+      summary: forwards the message
+      description: User forwards a message in a chat, represented by his id
+      requestBody:
+        description: User gives the chat id in input
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GeneralId'
+      responses:
+        '201':
+          description: message forwarding action successful
+          content:
+            plain/text:
+              schema:
+                description: '201 response message'
+                type: string
+                pattern: '^.*?$'
+                minLength: 1
+                maxLength: 30
+                example: "Forwarding accepted!"
+        '400':
+          $ref: '#/components/responses/InvalidRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    delete:
+      security:
+        - bearerAuth: []
+      tags: ["deleting of a message"]
+      operationId: deleteMessage
+      summary: deletes the message
+      description: User deletes a message
+      responses:
+        '200':
+          description: message deletion action successful
+          content:
+            plain/text:
+              schema:
+                description: '200 response message'
+                type: string
+                pattern: '^.*?$'
+                minLength: 1
+                maxLength: 30
+                example: "Deletion accepted!"
+        '400':
+          $ref: '#/components/responses/InvalidRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /session/{user}/conversations/{id}/messages/{mess_id}/comments:
+    description: comments area, where user can comment a message
+    parameters:
+      - name: user
+        description: user id
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/GeneralId'
+      - name: id
+        description: conversation id
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/GeneralId'
+      - name: mess_id
+        description: message id
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/GeneralId'
+    put:
+      security:
+        - bearerAuth: []
+      tags: ["comment creation"]
+      operationId: commentMessage
+      summary: new comment is created
+      description: User comments the message defined by the messId
+      requestBody:
+        description: User gives emoji in input
+        content:
+          application/json:
+            schema:
+              type: object
+              description: object that contains an emoji in input
+              properties:
+                emoji:
+                  description: emoji in input
+                  type: string
+                  enum:
+                    - "ok"
+                    - "love"
+                    - "wow"
+                    - "ahah"
+                    - "sad"
+                    - "angry"
+                    - "celebrate"
+        required: true
+      responses:
+        '200':
+          description: Comment modify action successful
+          content:
+            plain/text:
+              schema:
+                description: '200 response message'
+                type: string
+                pattern: '^.*?$'
+                minLength: 1
+                maxLength: 30
+                example: "Modify accepted!"
+        '201':
+          description: New comment sending action successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comment'
+        '400':
+          $ref: '#/components/responses/InvalidRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+      
+  
+  /session/{user}/conversations/{id}/messages/{mess_id}/comments/{comm_id}:
+    description: comment area, where user can delete it
+    parameters:
+      - name: user
+        description: user id
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/GeneralId'
+      - name: id
+        description: conversation id
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/GeneralId'
+      - name: mess_id
+        description: message id
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/GeneralId'
+      - name: comm_id
+        description: comment id
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/GeneralId'
+    delete:
+      security:
+        - bearerAuth: []
+      tags: ["deleting of a comment"]
+      operationId: uncommentMessage
+      summary: deletes the comment 
+      description: |
+        User deletes a comment (defined by the commId) on a message 
+        (defined by the messId)
+      responses:
+        '201':
+          description: comment deletion action successful
+          content:
+            plain/text:
+              schema:
+                description: '200 response message'
+                type: string
+                pattern: '^.*?$'
+                minLength: 1
+                maxLength: 30
+                example: "Deletion accepted!"
+        '400':
+          $ref: '#/components/responses/InvalidRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+          
+  /session/{user}/groups:
+    description: user area where he can create group
+    parameters:
+      - name: user
+        description: user id
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/GeneralId'
+    post:
+      security:
+        - bearerAuth: []
+      tags: ["creation of a group"]
+      summary: New group is created
+      description: User creates a new group with some users
+      operationId: groupCreation
+      requestBody:
+        description: |
+          User creates a new group with some users. He gives in input
+          a array of users, a name and a photo for the group
+        content:
+          application/json:
+            schema:
+              type: object
+              description: object that contains an array of user ids in input
+              properties:
+                users:
+                  description: array of user ids in input 
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/GeneralId'
+                  minItems: 1
+                  maxItems: 50
+                name:
+                  description: group name in input
+                  type: string
+                  pattern: '^.*?$'
+                  minLength: 1
+                  maxLength: 20
+                photo:
+                  description: group photo in input
+                  type: string
+                  pattern: '^.*?$'
+                  format: binary
+                  minLength: 1
+                  maxLength: 7000000
+              required: [name, users]
+        required: true
+      responses:
+        '201':
+          description: New group creaction action successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Group'
+        '400':
+          $ref: '#/components/responses/InvalidRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+          
+  /session/{user}/groups/{group_id}:
+    description: user area where he can create group
+    parameters:
+      - name: user
+        description: user id
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/GeneralId'
+      - name: group_id
+        description: group id
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/GeneralId'
+    put:
+      security:
+        - bearerAuth: []
+      tags: ["users group modify"]
+      operationId: addToGroup
+      summary: Adds users to group
+      description: User Adds users to group, defined by the groupId
+      requestBody:
+        description: User gives an array of user ids in input
+        content:
+          application/json:
+            schema:
+              type: object
+              description: object that contains an array of user ids in input
+              properties:
+                user_ids:
+                  description: user ids in input
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/GeneralId'
+                  minItems: 1
+                  maxItems: 49
+        required: true
+      responses:
+        '200':
+          description: group users list addition action successful
+          content:
+            plain/text:
+              schema:
+                description: '200 response message'
+                type: string
+                pattern: '^.*?$'
+                minLength: 1
+                maxLength: 30
+                example: "Addition accepted!" 
+        '400':
+          $ref: '#/components/responses/InvalidRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    delete:
+      security:
+        - bearerAuth: []
+      tags: ["deleting of a group"]
+      operationId: leaveGroup
+      summary: deletes the group
+      description: User leaves the group represented by the groupId
+      responses:
+        '200':
+          description: group deletion action successful
+          content:
+            plain/text:
+              schema:
+                description: '200 response message'
+                type: string
+                pattern: '^.*?$'
+                minLength: 1
+                maxLength: 30
+                example: "group leave accepted!"
+        '400':
+          $ref: '#/components/responses/InvalidRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+          
+  /session/{user}/groups/{group_id}/photo:
+    description: user area where he can modify the group photo
+    parameters:
+      - name: user
+        description: user id
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/GeneralId'
+      - name: group_id
+        description: group id
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/GeneralId'
+    put:
+      security:
+        - bearerAuth: []
+      tags: ["group photo modify"]
+      operationId: setGroupPhoto
+      summary: Modifies the photo of group
+      description: User modify the photo of group, defined by groupId
+      requestBody:
+        description: User gives new group photo in input
+        content:
+          application/json:
+            schema:
+              type: object
+              description: object that contains a new photo in input
+              properties:
+                photo:
+                  description: new photo in input
+                  type: string
+                  pattern: '^.*?$'
+                  format: binary
+                  minLength: 1
+                  maxLength: 7000000
+        required: true
+      responses:
+        '200':
+          description: Group photo modify action successful
+          content:
+            plain/text:
+              schema:
+                description: '200 response message'
+                type: string
+                pattern: '^.*?$'
+                minLength: 1
+                maxLength: 30
+                example: "Modify accepted!" 
+        '400':
+          $ref: '#/components/responses/InvalidRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+  
+  /session/{user}/groups/{group_id}/name:
+    description: user area where he can modify the group name
+    parameters:
+      - name: user
+        description: user id
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/GeneralId'
+      - name: group_id
+        description: group id
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/GeneralId'
+    put:
+      security:
+        - bearerAuth: []
+      tags: ["group name modify"]
+      operationId: setGroupName
+      summary: Modifies the name of group
+      description: User modify the name of group, defined by groupId
+      requestBody:
+        description: User gives new group name in input
+        content:
+          application/json:
+            schema:
+              type: object
+              description: object that contains a new name in input
+              properties:
+                new_group_name:
+                  description: new name in input
+                  type: string
+                  pattern: '^.*?$'
+                  minLength: 1
+                  maxLength: 20
+        required: true
+      responses:
+        '200':
+          description: Group name modify action successful
+          content:
+            plain/text:
+              schema:
+                description: '200 response message'
+                type: string
+                pattern: '^.*?$'
+                minLength: 1
+                maxLength: 30
+                example: "Modify accepted!" 
+        '400':
+          $ref: '#/components/responses/InvalidRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+  
+  /session/{user}/username:
+    description: user area where he can modify his username
+    parameters:
+      - name: user
+        description: user id
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/GeneralId'
+    put:
+      security:
+        - bearerAuth: []
+      tags: ["username modify"]
+      operationId: setMyUserName
+      summary: Modifies the username
+      description: User modify his username
+      requestBody:
+        description: User gives his new username in input
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Username'
+        required: true
+      responses:
+        '200':
+          description: Username modify action successful
+          content:
+            plain/text:
+              schema:
+                description: '200 response message'
+                type: string
+                pattern: '^.*?$'
+                minLength: 1
+                maxLength: 30
+                example: "Modify accepted!" 
+        '400':
+          $ref: '#/components/responses/InvalidRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+  
+  /session/{user}/photo:
+    description: user area where he can modify his photo
+    parameters:
+      - name: user
+        description: user id
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/GeneralId'
+    put:
+      security:
+        - bearerAuth: []
+      tags: ["photo modify"]
+      operationId: setMyPhoto
+      summary: Modifies the photo
+      description: User modify his photo
+      requestBody:
+        description: User gives his new photo in input
+        content:
+          application/json:
+            schema:
+              type: object
+              description: object that contains a new photo in input
+              properties:
+                photo:
+                  description: new photo in input
+                  type: string
+                  pattern: '^.*?$'
+                  format: binary
+                  minLength: 1
+                  maxLength: 7000000
+        required: true
+      responses:
+        '200':
+          description: photo modify action successful
+          content:
+            plain/text:
+              schema:
+                description: '200 response message'
+                type: string
+                pattern: '^.*?$'
+                minLength: 1
+                maxLength: 30
+                example: "Modify accepted!" 
+        '400':
+          $ref: '#/components/responses/InvalidRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    
+
+    
+      
+      
