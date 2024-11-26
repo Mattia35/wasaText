@@ -23,7 +23,7 @@ components:
             description: '400 error'
             type: object
             properties:
-              message:
+              error_message:
                 description: text of error message
                 type: string
                 pattern: '^.*?$'
@@ -127,49 +127,17 @@ components:
         sender:
           $ref: '#/components/schemas/GeneralId'
       required: [id, date_time, emoji, sender]
-    PrivateChatConversation:
+    Conversation:
       type: object
-      description: list of message of a private chat with another user
+      description: conversation of a private chat or a group
       properties:
         id:
           $ref: '#/components/schemas/GeneralId'
-        private_chat_id:
-          $ref: '#/components/schemas/GeneralId'
-        name:
-          $ref: '#/components/schemas/Username'
-        message:
-          type: string
-          description: text of the last message in the conversation
-          pattern: '^.*?$'
-          minLength: 1
-          maxLength: 9999
-        other_user:
-          $ref: '#/components/schemas/GeneralId'
-        photo:
-          type: string
-          description: | 
-            profile photo of the other user, and therefore also of 
-            the private chat
-          pattern: '^.*?$'
-          format: binary
-          minLength: 1
-          maxLength: 7000000
-      required: [id, private_chat_id, name, message, other_user]
-    GroupConversation:
-      type: object
-      description: list of message of a group with other users
-      properties:
-        id:
-          $ref: '#/components/schemas/GeneralId'
-        group_id:
+        group_id_or_privatechat_id:
           $ref: '#/components/schemas/GeneralId'
         message:
-          type: string
-          description: text of the last message in the conversation
-          pattern: '^.*?$'
-          minLength: 1
-          maxLength: 9999
-      required: [id, group_id, message]
+          $ref: '#/components/schemas/Message'
+      required: [id, group_id_or_privatechat_id, message]
     Group:
       type: object
       description: group with other users
@@ -276,7 +244,7 @@ paths:
           $ref: '#/components/responses/InvalidRequestError'
   
   
-  /session/{user}/conversations:
+  /users/{user}/conversations:
     description: user area where he can read and create chats
     parameters:
       - name: user
@@ -285,39 +253,6 @@ paths:
         required: true
         schema:
           $ref: '#/components/schemas/GeneralId'
-    put:
-      security:
-        - bearerAuth: []
-      tags: ["creation of a private chat/group conversation"]
-      summary: New chat or group conversation is created
-      description: |
-        User creates a new chat with a other user or a new group with some users
-      operationId: conversationCreation
-      requestBody:
-        description: choose between group or private chat, represented by a id
-        content:
-          application/json:
-            schema:
-              type: object
-              description: object that contains a group id or a user id in input
-              properties:
-                group_id_or_user_id:
-                  $ref: '#/components/schemas/GeneralId'
-        required: true
-      responses:
-        '201':
-          description: New chat creaction action successful
-          content:
-            application/json:
-              schema:
-                description: '201 response message'
-                oneOf:
-                - $ref: '#/components/schemas/PrivateChatConversation'
-                - $ref: '#/components/schemas/GroupConversation'
-        '400':
-          $ref: '#/components/responses/InvalidRequestError'
-        '401':
-          $ref: '#/components/responses/UnauthorizedError'
     get:
       security:
         - bearerAuth: []
@@ -340,16 +275,14 @@ paths:
                     description: conversations array in output
                     type: array
                     items:
-                      oneOf:
-                       - $ref: '#/components/schemas/PrivateChatConversation'
-                       - $ref: '#/components/schemas/GroupConversation'
+                      $ref: '#/components/schemas/Conversation'
                     minItems: 0
                     maxItems: 10000
                 required: [conversations]
         '401':
           $ref: '#/components/responses/UnauthorizedError'
           
-  /session/{user}/conversations/{id}:
+  /users/{user}/conversations/{id}:
     description: | 
       user area where he can do an interaction with a chat,
       identified by the id
@@ -366,6 +299,32 @@ paths:
         required: true
         schema:
           $ref: '#/components/schemas/GeneralId'
+    put:
+      security:
+        - bearerAuth: []
+      tags: ["creation of a private chat/group conversation"]
+      summary: New chat or group conversation is created
+      description: |
+        User creates a new chat with a other user or a new group with some users
+      operationId: conversationCreation
+      requestBody:
+        description: choose between group or private chat, represented by a id
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GeneralId'
+        required: true
+      responses:
+        '200':
+          description: New chat creaction action successful
+          content:
+            application/json:
+              schema: 
+                $ref: '#/components/schemas/Conversation'
+        '400':
+          $ref: '#/components/responses/InvalidRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
     get:
       security:
         - bearerAuth: []
@@ -396,6 +355,22 @@ paths:
                 required: [items]
         '401':
           $ref: '#/components/responses/UnauthorizedError'
+  
+  /users/{user}/conversations/{id}/messages:
+    description: message area, where user can forward it
+    parameters:
+      - name: user
+        description: user id
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/GeneralId'
+      - name: id
+        description: conversation id
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/GeneralId'
     post:
       security:
         - bearerAuth: []
@@ -430,7 +405,7 @@ paths:
         '401':
           $ref: '#/components/responses/UnauthorizedError'
   
-  /session/{user}/conversations/{id}/messages/{mess_id}:
+  /users/{user}/conversations/{id}/messages/{mess_id}:
     description: message area, where user can forward it
     parameters:
       - name: user
@@ -504,7 +479,7 @@ paths:
         '401':
           $ref: '#/components/responses/UnauthorizedError'
 
-  /session/{user}/conversations/{id}/messages/{mess_id}/comments:
+  /users/{user}/conversations/{id}/messages/{mess_id}/comments:
     description: comments area, where user can comment a message
     parameters:
       - name: user
@@ -576,7 +551,7 @@ paths:
           $ref: '#/components/responses/UnauthorizedError'
       
   
-  /session/{user}/conversations/{id}/messages/{mess_id}/comments/{comm_id}:
+  /users/{user}/conversations/{id}/messages/{mess_id}/comments/{comm_id}:
     description: comment area, where user can delete it
     parameters:
       - name: user
@@ -629,7 +604,7 @@ paths:
         '401':
           $ref: '#/components/responses/UnauthorizedError'
           
-  /session/{user}/groups:
+  /users/{user}/groups:
     description: user area where he can create group
     parameters:
       - name: user
@@ -689,7 +664,7 @@ paths:
         '401':
           $ref: '#/components/responses/UnauthorizedError'
           
-  /session/{user}/groups/{group_id}:
+  /users/{user}/groups/{group_id}:
     description: user area where he can create group
     parameters:
       - name: user
@@ -767,7 +742,7 @@ paths:
         '401':
           $ref: '#/components/responses/UnauthorizedError'
           
-  /session/{user}/groups/{group_id}/photo:
+  /users/{user}/groups/{group_id}/photo:
     description: user area where he can modify the group photo
     parameters:
       - name: user
@@ -792,7 +767,7 @@ paths:
       requestBody:
         description: User gives new group photo in input
         content:
-          application/json:
+          multipart/form-data:
             schema:
               type: object
               description: object that contains a new photo in input
@@ -801,7 +776,7 @@ paths:
                   description: new photo in input
                   type: string
                   pattern: '^.*?$'
-                  format: binary
+                  format: byte
                   minLength: 1
                   maxLength: 7000000
         required: true
@@ -822,7 +797,7 @@ paths:
         '401':
           $ref: '#/components/responses/UnauthorizedError'
   
-  /session/{user}/groups/{group_id}/name:
+  /users/{user}/groups/{group_id}/name:
     description: user area where he can modify the group name
     parameters:
       - name: user
@@ -876,7 +851,7 @@ paths:
         '401':
           $ref: '#/components/responses/UnauthorizedError'
   
-  /session/{user}/username:
+  /users/{user}/username:
     description: user area where he can modify his username
     parameters:
       - name: user
@@ -916,7 +891,7 @@ paths:
         '401':
           $ref: '#/components/responses/UnauthorizedError'
   
-  /session/{user}/photo:
+  /users/{user}/photo:
     description: user area where he can modify his photo
     parameters:
       - name: user
@@ -935,7 +910,7 @@ paths:
       requestBody:
         description: User gives his new photo in input
         content:
-          application/json:
+          multipart/form-data:
             schema:
               type: object
               description: object that contains a new photo in input
@@ -944,7 +919,7 @@ paths:
                   description: new photo in input
                   type: string
                   pattern: '^.*?$'
-                  format: binary
+                  format: byte
                   minLength: 1
                   maxLength: 7000000
         required: true
