@@ -76,7 +76,7 @@ components:
               maxLength: 9999
             - type: string
               description: message contains a photo
-              format: binary
+              format: byte
               pattern: '^.*?$'
               minLength: 1
               maxLength: 7000000
@@ -91,14 +91,14 @@ components:
           type: object
           description: list of message comments
           properties:
-            items:
+            array_of_comments:
               type: array
               description: array that represents the list of message comments 
               items:
                 $ref: '#/components/schemas/Comment'
               minItems: 0
               maxItems: 50
-          required: [items]
+          required: [array_of_comments]
       required: [id, date_time, text_or_photo, sender_or_status, comments]
     Comment:
       type: object
@@ -144,7 +144,7 @@ components:
       properties:
         id:
           $ref: '#/components/schemas/GeneralId'
-        name:
+        group_name:
           type: string
           description: text that represents the group name
           pattern: '^.*?$'
@@ -161,10 +161,10 @@ components:
           type: string
           description: group photo
           pattern: '^.*?$'
-          format: binary
+          format: byte
           minLength: 1
           maxLength: 7000000
-      required: [id, name, users]
+      required: [id, group_name, users]
       
 tags:
   - name: login
@@ -282,7 +282,7 @@ paths:
         '401':
           $ref: '#/components/responses/UnauthorizedError'
           
-  /users/{user}/conversations/{id}:
+  /users/{user}/conversations/{receiver}:
     description: | 
       user area where he can do an interaction with a chat,
       identified by the id
@@ -293,8 +293,8 @@ paths:
         required: true
         schema:
           $ref: '#/components/schemas/GeneralId'
-      - name: id
-        description: conversation id
+      - name: receiver
+        description: receiver id (group or user)
         in: path
         required: true
         schema:
@@ -312,8 +312,8 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/GeneralId'
-        required: true
+              $ref: '#/components/schemas/Message'
+        required: false
       responses:
         '200':
           description: New chat creaction action successful
@@ -337,26 +337,15 @@ paths:
       responses:
         '200':
           description: |
-            an array of object, each one contains a name, a message,
-            a array users and a photo
+            an array of object (contained in the conversation in output), each one contains a name, a message, a array users and a photo
           content:
             application/json:
-              schema:
-                type: object
-                description: '200 response message'
-                properties:
-                  items:
-                    description: messages array in output
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/Message'
-                    minItems: 0
-                    maxItems: 1000000
-                required: [items]
+              schema: 
+                $ref: '#/components/schemas/Conversation'
         '401':
           $ref: '#/components/responses/UnauthorizedError'
   
-  /users/{user}/conversations/{id}/messages:
+  /users/{user}/conversations/{receiver}/messages:
     description: message area, where user can forward it
     parameters:
       - name: user
@@ -365,8 +354,8 @@ paths:
         required: true
         schema:
           $ref: '#/components/schemas/GeneralId'
-      - name: id
-        description: conversation id
+      - name: receiver
+        description: receiver id (group or user)
         in: path
         required: true
         schema:
@@ -405,7 +394,7 @@ paths:
         '401':
           $ref: '#/components/responses/UnauthorizedError'
   
-  /users/{user}/conversations/{id}/messages/{mess_id}:
+  /users/{user}/conversations/{receiver}/messages/{mess_id}:
     description: message area, where user can forward it
     parameters:
       - name: user
@@ -414,8 +403,8 @@ paths:
         required: true
         schema:
           $ref: '#/components/schemas/GeneralId'
-      - name: id
-        description: conversation id
+      - name: receiver
+        description: receiver id (group or user)
         in: path
         required: true
         schema:
@@ -479,7 +468,7 @@ paths:
         '401':
           $ref: '#/components/responses/UnauthorizedError'
 
-  /users/{user}/conversations/{id}/messages/{mess_id}/comments:
+  /users/{user}/conversations/{receiver}/messages/{mess_id}/comments:
     description: comments area, where user can comment a message
     parameters:
       - name: user
@@ -488,8 +477,8 @@ paths:
         required: true
         schema:
           $ref: '#/components/schemas/GeneralId'
-      - name: id
-        description: conversation id
+      - name: receiver
+        description: receiver id (group or user)
         in: path
         required: true
         schema:
@@ -551,7 +540,7 @@ paths:
           $ref: '#/components/responses/UnauthorizedError'
       
   
-  /users/{user}/conversations/{id}/messages/{mess_id}/comments/{comm_id}:
+  /users/{user}/conversations/{receiver}/messages/{mess_id}/comments/{comm_id}:
     description: comment area, where user can delete it
     parameters:
       - name: user
@@ -560,8 +549,8 @@ paths:
         required: true
         schema:
           $ref: '#/components/schemas/GeneralId'
-      - name: id
-        description: conversation id
+      - name: receiver
+        description: receiver id (group or user)
         in: path
         required: true
         schema:
@@ -637,7 +626,7 @@ paths:
                     $ref: '#/components/schemas/GeneralId'
                   minItems: 1
                   maxItems: 50
-                name:
+                group_name:
                   description: group name in input
                   type: string
                   pattern: '^.*?$'
@@ -647,10 +636,10 @@ paths:
                   description: group photo in input
                   type: string
                   pattern: '^.*?$'
-                  format: binary
+                  format: byte
                   minLength: 1
                   maxLength: 7000000
-              required: [name, users]
+              required: [group_name, users]
         required: true
       responses:
         '201':
