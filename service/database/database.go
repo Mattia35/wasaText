@@ -38,9 +38,9 @@ import (
 
 // AppDatabase is the high level interface for the DB
 type AppDatabase interface {
-	GetName() (string, error)
-	SetName(name string) error
-
+	NameControl(username string) (bool, error)
+	GetUserByName(username string) (User, error)
+	CreateUser(u User) (User, error)
 	Ping() error
 }
 
@@ -54,18 +54,48 @@ func New(db *sql.DB) (AppDatabase, error) {
 	if db == nil {
 		return nil, errors.New("database is required when building a AppDatabase")
 	}
-
-	// Check if table exists. If not, the database is empty, and we need to create the structure
-	var tableName string
-	err := db.QueryRow(`SELECT name FROM sqlite_master WHERE type='table' AND name='example_table';`).Scan(&tableName)
-	if errors.Is(err, sql.ErrNoRows) {
-		sqlStmt := `CREATE TABLE example_table (id INTEGER NOT NULL PRIMARY KEY, name TEXT);`
-		_, err = db.Exec(sqlStmt)
-		if err != nil {
-			return nil, fmt.Errorf("error creating database structure: %w", err)
-		}
+	/// Check if the database is empty
+	var tableSQL uint8
+	err := db.QueryRow("SELECT COUNT(name) FROM sqlite_master WHERE type='table'").Scan(&tableSQL)
+	if err != nil {
+		return nil, fmt.Errorf("error checking if database is empty: %w", err)
 	}
 
+	// Check of the number of table is corret (there are 5 tables)
+	// if the number of table is not 5, we creating missing tables
+	if tableSQL != 5 {
+
+		// Craetion of the user tabel
+		_, err = db.Exec(userTable)
+		if err != nil {
+			return nil, fmt.Errorf("error creating database structure user: %w", err)
+		}
+
+		// Creation of the message table
+		_, err = db.Exec(messTable)
+		if err != nil {
+			return nil, fmt.Errorf("error creating database structure message: %w", err)
+		}
+
+		// Creation of the group table
+		_, err = db.Exec(groupTable)
+		if err != nil {
+			return nil, fmt.Errorf("error creating database structure group: %w", err)
+		}
+
+		// Creation of the user_group table
+		_, err = db.Exec(usersGroupTable)
+		if err != nil {
+			return nil, fmt.Errorf("error creating database structure user and group: %w", err)
+		}
+
+		// Creation of the conversation table
+		_, err = db.Exec(convTable)
+		if err != nil {
+			return nil, fmt.Errorf("error creating database structure conversation: %w", err)
+		}
+	}
+	
 	return &appdbimpl{
 		c: db,
 	}, nil

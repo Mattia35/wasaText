@@ -30,6 +30,36 @@ components:
                 minLength: 1
                 maxLength: 30
                 example: "Bad request, retry!" 
+    ForbiddenError:
+      description: bad request
+      content:
+        application/json:
+          schema:
+            description: '403 error'
+            type: object
+            properties:
+              error_message:
+                description: text of error message
+                type: string
+                pattern: '^.*?$'
+                minLength: 1
+                maxLength: 30
+                example: "User is not allowed to perform the action!" 
+    InternalServerError:
+      description: server error
+      content:
+        application/json:
+          schema:
+            description: '500 error'
+            type: object
+            properties:
+              error_message:
+                description: text of error message
+                type: string
+                pattern: '^.*?$'
+                minLength: 1
+                maxLength: 30
+                example: "Server error, try again later!"
   schemas:
     GeneralId:
       type: object
@@ -221,7 +251,7 @@ paths:
         required: true
       responses:
         '200':
-          description: User creation action successful
+          description: User login action successful
           content:
             application/json:
               schema:
@@ -231,7 +261,7 @@ paths:
                   id:
                     $ref: '#/components/schemas/GeneralId'
         '201':
-          description: User log-in action successful
+          description: User creation action successful
           content:
             application/json:
               schema:
@@ -242,6 +272,8 @@ paths:
                     $ref: '#/components/schemas/GeneralId'
         '400':
           $ref: '#/components/responses/InvalidRequestError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
   
   
   /users/{user}/conversations:
@@ -281,6 +313,10 @@ paths:
                 required: [conversations]
         '401':
           $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
           
   /users/{user}/conversations/{receiver}:
     description: | 
@@ -325,6 +361,8 @@ paths:
           $ref: '#/components/responses/InvalidRequestError'
         '401':
           $ref: '#/components/responses/UnauthorizedError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
     get:
       security:
         - bearerAuth: []
@@ -344,6 +382,10 @@ paths:
                 $ref: '#/components/schemas/Conversation'
         '401':
           $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
   
   /users/{user}/conversations/{receiver}/messages:
     description: message area, where user can forward it
@@ -393,6 +435,10 @@ paths:
           $ref: '#/components/responses/InvalidRequestError'
         '401':
           $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
   
   /users/{user}/conversations/{receiver}/messages/{mess_id}:
     description: message area, where user can forward it
@@ -444,6 +490,10 @@ paths:
           $ref: '#/components/responses/InvalidRequestError'
         '401':
           $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
     delete:
       security:
         - bearerAuth: []
@@ -467,6 +517,10 @@ paths:
           $ref: '#/components/responses/InvalidRequestError'
         '401':
           $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
 
   /users/{user}/conversations/{receiver}/messages/{mess_id}/comments:
     description: comments area, where user can comment a message
@@ -538,6 +592,10 @@ paths:
           $ref: '#/components/responses/InvalidRequestError'
         '401':
           $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
       
   
   /users/{user}/conversations/{receiver}/messages/{mess_id}/comments/{comm_id}:
@@ -577,7 +635,7 @@ paths:
         User deletes a comment (defined by the commId) on a message 
         (defined by the messId)
       responses:
-        '201':
+        '200':
           description: comment deletion action successful
           content:
             plain/text:
@@ -592,6 +650,10 @@ paths:
           $ref: '#/components/responses/InvalidRequestError'
         '401':
           $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
           
   /users/{user}/groups:
     description: user area where he can create group
@@ -652,6 +714,8 @@ paths:
           $ref: '#/components/responses/InvalidRequestError'
         '401':
           $ref: '#/components/responses/UnauthorizedError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
           
   /users/{user}/groups/{group_id}:
     description: user area where he can create group
@@ -707,6 +771,10 @@ paths:
           $ref: '#/components/responses/InvalidRequestError'
         '401':
           $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
     delete:
       security:
         - bearerAuth: []
@@ -730,6 +798,10 @@ paths:
           $ref: '#/components/responses/InvalidRequestError'
         '401':
           $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
           
   /users/{user}/groups/{group_id}/photo:
     description: user area where he can modify the group photo
@@ -785,6 +857,8 @@ paths:
           $ref: '#/components/responses/InvalidRequestError'
         '401':
           $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
   
   /users/{user}/groups/{group_id}/name:
     description: user area where he can modify the group name
@@ -839,6 +913,8 @@ paths:
           $ref: '#/components/responses/InvalidRequestError'
         '401':
           $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
   
   /users/{user}/username:
     description: user area where he can modify his username
@@ -879,7 +955,8 @@ paths:
           $ref: '#/components/responses/InvalidRequestError'
         '401':
           $ref: '#/components/responses/UnauthorizedError'
-  
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
   /users/{user}/photo:
     description: user area where he can modify his photo
     parameters:
@@ -928,6 +1005,8 @@ paths:
           $ref: '#/components/responses/InvalidRequestError'
         '401':
           $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
     
 
     
