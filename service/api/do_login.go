@@ -3,15 +3,15 @@ package api
 import (
 	"encoding/json"
 	"net/http"
-	"progetto.wasa/service/api/reqcontext"
-	"github.com/julienschmidt/httprouter"
-)
 
+	"github.com/julienschmidt/httprouter"
+	"progetto.wasa/service/api/reqcontext"
+)
 
 func (rt *_router) doLogin(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
 	var user User
 
-	// Read the request body
+	// Read the request body with json
 	err := json.NewDecoder(r.Body).Decode(&user)
 	if err != nil {
 		http.Error(w, "Bad request"+err.Error(), http.StatusBadRequest)
@@ -29,7 +29,7 @@ func (rt *_router) doLogin(w http.ResponseWriter, r *http.Request, ps httprouter
 		If the user does not exist, create a new user
 		else return the user object
 	*/
-	nameExistance, err := rt.db.NameControl(user.Username) 
+	nameExistance, err := rt.db.NameControl(user.Username)
 	if err != nil {
 		ctx.Logger.WithError(err).Error("can't check if the user exists")
 		w.WriteHeader(http.StatusInternalServerError)
@@ -45,7 +45,7 @@ func (rt *_router) doLogin(w http.ResponseWriter, r *http.Request, ps httprouter
 		}
 		w.WriteHeader(http.StatusCreated)
 	} else {
-		userInDb, err := rt.db.GetUserByName(user.Username) 
+		userInDb, err := rt.db.GetUserByName(user.Username)
 		if err != nil {
 			ctx.Logger.WithError(err).Error("can't load the user")
 			w.WriteHeader(http.StatusInternalServerError)
