@@ -1,6 +1,6 @@
 package database
 
-var query_GETUSERBYNAME = `SELECT userId, username FROM User WHERE username = ?;`
+var query_GETUSERBYNAME = `SELECT userId, username FROM UserTable WHERE username = ?;`
 
 func (database *appdbimpl) GetUserByName(username string) (User, error) {
 	var user User

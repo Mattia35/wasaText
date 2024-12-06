@@ -40,7 +40,11 @@ import (
 type AppDatabase interface {
 	NameControl(username string) (bool, error)
 	GetUserByName(username string) (User, error)
+	GetGroupByGroupId(groupId int) (Group, error)
 	CreateUser(u User) (User, error)
+	UsernameModify(userId int, username string) error
+	UserControlByGroup(userId int, groupId int) (bool, error)
+	GroupnameModify(groupId int, groupname string) error
 	Ping() error
 }
 

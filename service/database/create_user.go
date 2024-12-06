@@ -70,8 +70,7 @@ func (db *appdbimpl) CreateUser(u User) (User, error) {
 	}
 
 	// ------------INSERT USER--------------//
-	bio := ""
-	_, err = db.c.Exec(query_ADDUSER, user.UserId, user.Username, bio)
+	_, err = db.c.Exec(query_ADDUSER, user.UserId, user.Username)
 	if err != nil {
 		return user, err
 	}
