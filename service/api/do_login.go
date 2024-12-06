@@ -11,7 +11,7 @@ import (
 func (rt *_router) doLogin(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
 	var user User
 
-	// Read the request body
+	// Read the request body with json
 	err := json.NewDecoder(r.Body).Decode(&user)
 	if err != nil {
 		http.Error(w, "Bad request"+err.Error(), http.StatusBadRequest)
