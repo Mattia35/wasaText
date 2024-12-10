@@ -21,7 +21,7 @@ func (user *User) IsValid() bool {
 func (user *User) FromDatabase(userInDb database.User) error {
 	user.UserId = userInDb.UserId
 	user.Username = userInDb.Username
-	photo, err := photoUtils.ImageToBase64(photoUtils.GetProfilePhotoPath(user.UserId))
+	photo, err := photoUtils.ImageToBase64(photoUtils.GetUserPhotoPath(user.UserId))
 	user.UserPhoto = photo
 	if err != nil {
 		return err

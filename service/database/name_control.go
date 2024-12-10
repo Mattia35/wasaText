@@ -5,7 +5,7 @@ import (
 	"errors"
 )
 
-var query_FINDUSERNAME = `SELECT username FROM User WHERE username = ?`
+var query_FINDUSERNAME = `SELECT username FROM userTable WHERE username = ?`
 
 func (database *appdbimpl) NameControl(username string) (bool, error) {
 	var existsName string

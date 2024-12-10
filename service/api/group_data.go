@@ -21,7 +21,7 @@ func (group *Group) IsValid() bool {
 func (group *Group) GroupFromDatabase(groupInDb database.Group) error {
 	group.GroupId = groupInDb.GroupId
 	group.Username = groupInDb.Username
-	photo, err := photoUtils.ImageToBase64(photoUtils.GetProfilePhotoPath(group.GroupId))
+	photo, err := photoUtils.ImageToBase64(photoUtils.GetUserPhotoPath(group.GroupId))
 	group.GroupPhoto = photo
 	if err != nil {
 		return err

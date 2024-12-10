@@ -318,7 +318,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
           
-  /users/{user}/conversations/{receiver}:
+  /users/{user}/conversations/{receiver_user_id}:
     description: | 
       user area where he can do an interaction with a chat,
       identified by the id
@@ -329,7 +329,7 @@ paths:
         required: true
         schema:
           $ref: '#/components/schemas/GeneralId'
-      - name: receiver
+      - name: receiver_user_id
         description: receiver id (group or user)
         in: path
         required: true
@@ -387,7 +387,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
   
-  /users/{user}/conversations/{receiver}/messages:
+  /users/{user}/conversations/{receiver_user_id}/messages:
     description: message area, where user can forward it
     parameters:
       - name: user
@@ -396,7 +396,7 @@ paths:
         required: true
         schema:
           $ref: '#/components/schemas/GeneralId'
-      - name: receiver
+      - name: receiver_user_id
         description: receiver id (group or user)
         in: path
         required: true
@@ -440,7 +440,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
   
-  /users/{user}/conversations/{receiver}/messages/{mess_id}:
+  /users/{user}/conversations/{receiver_user_id}/messages/{mess_id}:
     description: message area, where user can forward it
     parameters:
       - name: user
@@ -449,7 +449,7 @@ paths:
         required: true
         schema:
           $ref: '#/components/schemas/GeneralId'
-      - name: receiver
+      - name: receiver_user_id
         description: receiver id (group or user)
         in: path
         required: true
@@ -522,7 +522,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /users/{user}/conversations/{receiver}/messages/{mess_id}/comments:
+  /users/{user}/conversations/{receiver_user_id}/messages/{mess_id}/comments:
     description: comments area, where user can comment a message
     parameters:
       - name: user
@@ -531,7 +531,7 @@ paths:
         required: true
         schema:
           $ref: '#/components/schemas/GeneralId'
-      - name: receiver
+      - name: receiver_user_id
         description: receiver id (group or user)
         in: path
         required: true
@@ -598,7 +598,7 @@ paths:
           $ref: '#/components/responses/InternalServerError'
       
   
-  /users/{user}/conversations/{receiver}/messages/{mess_id}/comments/{comm_id}:
+  /users/{user}/conversations/{receiver_user_id}/messages/{mess_id}/comments/{comm_id}:
     description: comment area, where user can delete it
     parameters:
       - name: user
@@ -607,7 +607,7 @@ paths:
         required: true
         schema:
           $ref: '#/components/schemas/GeneralId'
-      - name: receiver
+      - name: receiver_user_id
         description: receiver id (group or user)
         in: path
         required: true

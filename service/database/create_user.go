@@ -10,8 +10,8 @@ import (
 	"progetto.wasa/service/api/photoUtils"
 )
 
-var query_ADDUSER = `INSERT INTO User (userId, username) VALUES (?, ?);`
-var query_MAXID = `SELECT MAX(userId) FROM User`
+var query_ADDUSER = `INSERT INTO userTable (userId, username) VALUES (?, ?);`
+var query_MAXID = `SELECT MAX(userId) FROM userTable`
 
 func (db *appdbimpl) CreateUser(u User) (User, error) {
 	var user User
