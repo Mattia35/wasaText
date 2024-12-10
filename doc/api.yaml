@@ -129,7 +129,6 @@ components:
               minItems: 0
               maxItems: 50
           required: [array_of_comments]
-      required: [id, date_time, text_or_photo, sender_or_status, comments]
     Comment:
       type: object
       description: single message comment of the list
@@ -349,7 +348,6 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/Message'
-        required: false
       responses:
         '200':
           description: New chat creaction action successful
