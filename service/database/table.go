@@ -51,8 +51,20 @@ var messTable = `CREATE TABLE IF NOT EXISTS messTable (
 var usersGroupTable = `CREATE TABLE IF NOT EXISTS usersGroupTable (
 	groupId INTEGER NOT NULL UNIQUE,
 	userId INTEGER NOT NULL,
+	PRIMARY KEY (groupId, userId)
 	CONSTRAINT usersGroup 
 		FOREIGN KEY (groupId) REFERENCES groupTable (groupId)
+			ON DELETE CASCADE
+		FOREIGN KEY (userId) REFERENCES userTable (userId)
+			ON DELETE CASCADE
+);`
+
+var usersConvTable = `CREATE TABLE IF NOT EXISTS usersConvTable (
+	convId INTEGER NOT NULL UNIQUE,
+	userId INTEGER NOT NULL,
+	PRIMARY KEY (convId, userId)
+	CONSTRAINT usersConv
+		FOREIGN KEY (convId) REFERENCES convTable (convId)
 			ON DELETE CASCADE
 		FOREIGN KEY (userId) REFERENCES userTable (userId)
 			ON DELETE CASCADE

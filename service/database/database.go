@@ -45,6 +45,7 @@ type AppDatabase interface {
 	UsernameModify(userId int, username string) error
 	UserControlByGroup(userId int, groupId int) (bool, error)
 	GroupnameModify(groupId int, groupname string) error
+	CreateGroup(gr Group, convId int, userId int) (Group, error)
 	Ping() error
 }
 
@@ -91,6 +92,12 @@ func New(db *sql.DB) (AppDatabase, error) {
 		_, err = db.Exec(usersGroupTable)
 		if err != nil {
 			return nil, fmt.Errorf("error creating database structure user and group: %w", err)
+		}
+
+		// Creation of the user_conv table
+		_, err = db.Exec(usersConvTable)
+		if err != nil {
+			return nil, fmt.Errorf("error creating database structure user and conv: %w", err)
 		}
 
 		// Creation of the conversation table

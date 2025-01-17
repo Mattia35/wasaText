@@ -22,8 +22,17 @@ func (rt *_router) wrap(fn httpRouterHandler, auth bool) func(http.ResponseWrite
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
+		userId:=0
+		if auth {
+			userId = isAuthorized(r.Header)
+			if userId ==0 {
+				http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			}
+		}
+
 		var ctx = reqcontext.RequestContext{
 			ReqUUID: reqUUID,
+			UserID: userId,
 		}
 
 		// Create a request-specific logger

@@ -43,7 +43,7 @@ components:
                 type: string
                 pattern: '^.*?$'
                 minLength: 1
-                maxLength: 30
+                maxLength: 50
                 example: "User is not allowed to perform the action!" 
     InternalServerError:
       description: server error
