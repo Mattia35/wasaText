@@ -8,13 +8,14 @@ import (
 	"os"
 
 	"progetto.wasa/service/api/photoUtils"
+	"progetto.wasa/service/api/structions"
 )
 
 var query_ADDUSER = `INSERT INTO userTable (userId, username) VALUES (?, ?);`
 var query_MAXID = `SELECT MAX(userId) FROM userTable`
 
-func (db *appdbimpl) CreateUser(u User) (User, error) {
-	var user User
+func (db *appdbimpl) CreateUser(u structions.User) (structions.User, error) {
+	var user structions.User
 	user.Username = u.Username
 
 	// ------FIND USERID---------//

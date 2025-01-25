@@ -1,11 +1,15 @@
 package database
 
+import "time"
+
 type Message struct {
 	MessageId int `json:"messageId"`
+	DateTime time.Time `json:"dateTime"`
 	Text string `json:"text"`
 	Status bool `json:"status"`
 	ConvId int `json:"convId"`
 	SenderId int `json:"senderId"`
+	Photo string `json:"photo"`
 }
 
 type User struct {
@@ -21,7 +25,5 @@ type Group struct {
 type Conversation struct {
 	ConvId int `json:"convId"`
 	GroupId int `json:"groupId"`
-	OtherUserId int `json:"otherUserId"`
-	SenderId int `json:"senderId"`
 	LastMessageId int `json:"lastMessageId"`
 }

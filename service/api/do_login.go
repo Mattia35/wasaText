@@ -6,10 +6,11 @@ import (
 
 	"github.com/julienschmidt/httprouter"
 	"progetto.wasa/service/api/reqcontext"
+	"progetto.wasa/service/api/structions"
 )
 
 func (rt *_router) doLogin(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
-	var user User
+	var user structions.User
 
 	// Read the request body
 	err := json.NewDecoder(r.Body).Decode(&user)
@@ -37,7 +38,7 @@ func (rt *_router) doLogin(w http.ResponseWriter, r *http.Request, ps httprouter
 	}
 
 	if !nameExistance {
-		user, err = rt.CreateUser(user)
+		user, err = rt.db.CreateUser(user)
 		if err != nil {
 			ctx.Logger.WithError(err).Error("can't create the user")
 			w.WriteHeader(http.StatusInternalServerError)
@@ -45,15 +46,9 @@ func (rt *_router) doLogin(w http.ResponseWriter, r *http.Request, ps httprouter
 		}
 		w.WriteHeader(http.StatusCreated)
 	} else {
-		userInDb, err := rt.db.GetUserByName(user.Username)
+		user, err = rt.db.GetUserByName(user.Username)
 		if err != nil {
 			ctx.Logger.WithError(err).Error("can't load the user")
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-		err = user.FromDatabase(userInDb)
-		if err != nil {
-			ctx.Logger.WithError(err).Error("can't convert the user")
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
@@ -62,7 +57,7 @@ func (rt *_router) doLogin(w http.ResponseWriter, r *http.Request, ps httprouter
 
 	// This struct contain the User object and the authorization token.
 	type UserAuthentication struct {
-		User  User `json:"user"`
+		User  structions.User `json:"user"`
 		Token int  `json:"token"`
 	}
 

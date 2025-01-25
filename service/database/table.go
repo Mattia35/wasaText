@@ -15,20 +15,12 @@ var groupTable = `CREATE TABLE IF NOT EXISTS groupTable (
 var convTable = `CREATE TABLE IF NOT EXISTS convTable (
 	convId INTEGER NOT NULL,
 	groupId INTEGER,
-	otherUserId INTEGER,
-	senderId INTEGER NOT NULL,
 	lastMessageId INTEGER,
-	lastMessageConvId INTEGER,
-	lastMessageSenderId INTEGER,
 	PRIMARY KEY (convId, senderId)
 	CONSTRAINT conversation 
-		FOREIGN KEY (senderId) REFERENCES userTable (userId)
-			ON DELETE CASCADE
-		FOREIGN KEY (otherUserId) REFERENCES userTable (userId)
-			ON DELETE CASCADE
 		FOREIGN KEY (groupId) REFERENCES groupTable (groupId)
 			ON DELETE CASCADE
-		FOREIGN KEY (lastMessageId, lastMessageConvId, lastMessageSenderId) REFERENCES messTable (messId, convId, senderId)
+		FOREIGN KEY (lastMessageId, convId) REFERENCES messTable (messId, convId)
 			ON DELETE CASCADE
 );`
 
@@ -38,11 +30,11 @@ var messTable = `CREATE TABLE IF NOT EXISTS messTable (
 	text TEXT NOT NULL,
 	status BOOLEAN,
 	convId INTEGER NOT NULL,
-	convSenderId INTEGER,
+	Photo STRING,
 	senderId INTEGER NOT NULL,
-	PRIMARY KEY (messId, convId, senderId)
+	PRIMARY KEY (messId, convId)
 	CONSTRAINT message
-		FOREIGN KEY (convId, convSenderId) REFERENCES convTable (convId, senderId)
+		FOREIGN KEY (convId) REFERENCES convTable (convId)
 			ON DELETE CASCADE
 		FOREIGN KEY (senderId) REFERENCES userTable (userId)
 			ON DELETE CASCADE

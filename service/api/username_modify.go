@@ -7,6 +7,7 @@ import (
 
 	"progetto.wasa/service/api/reqcontext"
 	"github.com/julienschmidt/httprouter"
+	"progetto.wasa/service/api/structions"
 )
 
 func (rt *_router) UsernameModify (w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
@@ -25,7 +26,7 @@ func (rt *_router) UsernameModify (w http.ResponseWriter, r *http.Request, ps ht
 		return
 	}
 
-	var user User
+	var user structions.User
 	// Check if the user makes a bad request
 	if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
 		http.Error(w, "Bad Request"+err.Error(), http.StatusBadRequest)
@@ -38,11 +39,6 @@ func (rt *_router) UsernameModify (w http.ResponseWriter, r *http.Request, ps ht
 		return
 	}
 	user.UserId = UserId
-	// Check if the server has internal problems
-	if err := user.FromDatabase(user.ToDatabase()); err != nil {
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
-		return
-	}
 	// Try to modify the username. If username is already taken, it gives an error
 	if err := rt.db.UsernameModify(userID, user.Username); err!= nil {
 		http.Error(w, "Username already taken. Retry!", http.StatusBadRequest)

@@ -34,18 +34,25 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+
+	"progetto.wasa/service/api/structions"
 )
 
 // AppDatabase is the high level interface for the DB
 type AppDatabase interface {
 	NameControl(username string) (bool, error)
-	GetUserByName(username string) (User, error)
-	GetGroupByGroupId(groupId int) (Group, error)
-	CreateUser(u User) (User, error)
+	GetUserByName(username string) (structions.User, error)
+	GetGroupByGroupId(groupId int) (structions.Group, error)
+	CreateUser(u structions.User) (structions.User, error)
 	UsernameModify(userId int, username string) error
 	UserControlByGroup(userId int, groupId int) (bool, error)
 	GroupnameModify(groupId int, groupname string) error
-	CreateGroup(gr Group, convId int, userId int) (Group, error)
+	CreateGroup(gr structions.Group, convId int, userId int) (structions.Group, int, error)
+	CreateConversation(conv structions.Conversation) (structions.Conversation, error)
+	UserControlByUsername(username string) (error)
+	AddUserToGroup(userId int, groupId int) (error)
+	CreateMessage(mes structions.Message) (structions.Message, error)
+	AddMessageToConv(MessageId int, ConvId int) (error)
 	Ping() error
 }
 
@@ -106,7 +113,7 @@ func New(db *sql.DB) (AppDatabase, error) {
 			return nil, fmt.Errorf("error creating database structure conversation: %w", err)
 		}
 	}
-	
+
 	return &appdbimpl{
 		c: db,
 	}, nil

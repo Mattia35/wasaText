@@ -7,6 +7,7 @@ import (
 
 	"progetto.wasa/service/api/reqcontext"
 	"github.com/julienschmidt/httprouter"
+	"progetto.wasa/service/api/structions"
 )
 
 func (rt *_router) GroupNameModify (w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
@@ -44,7 +45,7 @@ func (rt *_router) GroupNameModify (w http.ResponseWriter, r *http.Request, ps h
 		return
 	}
 
-	var group Group
+	var group structions.Group
 	// Check if the user makes a bad request
 	if err := json.NewDecoder(r.Body).Decode(&group); err != nil {
 		http.Error(w, "Bad Request"+err.Error(), http.StatusBadRequest)
@@ -57,11 +58,6 @@ func (rt *_router) GroupNameModify (w http.ResponseWriter, r *http.Request, ps h
 		return
 	}
 	group.GroupId = GroupId
-	// Check if the server has internal problems
-	if err := group.GroupFromDatabase(group.GroupToDatabase()); err != nil {
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
-		return
-	}
 	// Try to modify the groupname. If it fails, it gives an error
 	if err := rt.db.GroupnameModify(GroupId, group.Username); err!= nil {
 		http.Error(w, "Groupname modify failed. Retry!", http.StatusBadRequest)
