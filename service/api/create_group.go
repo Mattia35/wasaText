@@ -47,6 +47,7 @@ func (rt *_router) CreateGroup(w http.ResponseWriter, r *http.Request, ps httpro
 
 	var groupIdAPI int
 
+	// Create the group
 	group, groupIdAPI, err = rt.db.CreateGroup(group, UserId, conversation.ConvId)
 	if err != nil {
 		ctx.Logger.WithError(err).Error("can't create the group")
@@ -56,12 +57,14 @@ func (rt *_router) CreateGroup(w http.ResponseWriter, r *http.Request, ps httpro
 	group.GroupId = groupIdAPI
 	w.WriteHeader(http.StatusCreated)
 	conversation.GroupId = group.GroupId
-	_, err = rt.db.CreateConversation(conversation)
+	// Create the group conversation
+	conversation, err = rt.db.CreateConversation(conversation)
 	if err != nil {
 		ctx.Logger.WithError(err).Error("can't create the conversation of the group")
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+	// Add users to the group conversation
 	for i := 0; i < len(request.Users); i++ {
 		err := rt.db.UserControlByUsername(request.Users[i].Username)
 		if err != nil {
@@ -92,6 +95,7 @@ func (rt *_router) CreateGroup(w http.ResponseWriter, r *http.Request, ps httpro
 		Text:           "You are now part of the group " + group.Username,
 	}
 
+	// Create the welcome message
 	message, err = rt.db.CreateMessage(message)
 	if err != nil {
 		ctx.Logger.WithError(err).Error("server now can't create the welcome message")
@@ -106,6 +110,8 @@ func (rt *_router) CreateGroup(w http.ResponseWriter, r *http.Request, ps httpro
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+
+	w.WriteHeader(http.StatusCreated)
 
 	// Response
 	w.Header().Set("content-type", "application/json")

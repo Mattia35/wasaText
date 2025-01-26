@@ -53,6 +53,8 @@ type AppDatabase interface {
 	AddUserToGroup(userId int, groupId int) (error)
 	CreateMessage(mes structions.Message) (structions.Message, error)
 	AddMessageToConv(MessageId int, ConvId int) (error)
+	GetUserById(userId int) (structions.User, error)
+	GetConvByUsers(userId int, destId int) (int, error)
 	Ping() error
 }
 
