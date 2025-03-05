@@ -49,15 +49,17 @@ type AppDatabase interface {
 	GroupnameModify(groupId int, groupname string) error
 	CreateGroup(gr structions.Group, convId int, userId int) (structions.Group, int, error)
 	CreateConversation(conv structions.Conversation) (structions.Conversation, error)
-	UserControlByUsername(username string) (error)
-	AddUserToGroup(userId int, groupId int) (error)
+	UserControlByUsername(username string) error
+	AddUserToGroup(userId int, groupId int) error
 	CreateMessage(mes structions.Message) (structions.Message, error)
-	AddMessageToConv(MessageId int, ConvId int) (error)
+	AddMessageToConv(MessageId int, ConvId int) error
 	GetUserById(userId int) (structions.User, error)
 	GetConvByUsers(userId int, destId int) (int, error)
 	GetConversationsByUserId(userId int) ([]structions.Conversation, error)
 	GetConvById(convId int) (structions.Conversation, error)
 	GetUserByConv(convId int, userId int) (structions.User, error)
+	GetMessageById(LastMessage int, ConvId int) (structions.Message, error)
+	GetUsersByGroupId(groupId int) ([]structions.User, error)
 	Ping() error
 }
 

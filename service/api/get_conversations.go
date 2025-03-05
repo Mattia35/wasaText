@@ -63,28 +63,15 @@ func (rt *_router) GetConversations(w http.ResponseWriter, r *http.Request, ps h
 				http.Error(w, "Bad Request"+err.Error(), http.StatusBadRequest)
 				return
 			}
-			var user User
-			err = user.ConvertUserFromDB(userDB)
-			if err != nil {
-				http.Error(w, "Bad Request"+err.Error(), http.StatusBadRequest)
-				return
-			}
 
 			// Get last message
-			message, err := rt.db.GetMessageById(conv.LastMessageId, conv.ConversationId)
+			message, err := rt.db.GetMessageById(conv.LastMessage, conv.ConvId)
 			if err != nil {
 				http.Error(w, "Bad Request"+err.Error(), http.StatusBadRequest)
 				return
 			}
 
-			SenderUserDB, err := rt.db.GetUserById(message.SenderUserId)
-			if err != nil {
-				http.Error(w, "Bad Request"+err.Error(), http.StatusBadRequest)
-				return
-			}
-
-			var senderUser structions.User
-			err = senderUser.ConvertUserFromDB(SenderUserDB)
+			senderUser, err := rt.db.GetUserById(message.SenderId)
 			if err != nil {
 				http.Error(w, "Bad Request"+err.Error(), http.StatusBadRequest)
 				return
@@ -98,64 +85,35 @@ func (rt *_router) GetConversations(w http.ResponseWriter, r *http.Request, ps h
 			}
 		} else {
 			// Get the group from the conversation
-			groupDB, err := rt.db.GetGroupById(conv.GroupId)
-			if err != nil {
-				http.Error(w, "Bad Request"+err.Error(), http.StatusBadRequest)
-				return
-			}
-			var group structions.Group
-			err = group.ConvertGroupFromDB(groupDB)
+			group, err := rt.db.GetGroupByGroupId(conv.GroupId)
 			if err != nil {
 				http.Error(w, "Bad Request"+err.Error(), http.StatusBadRequest)
 				return
 			}
 
 			// Get last message
-			message, err := rt.db.GetMessageById(conv.LastMessageId, conv.ConversationId)
+			message, err := rt.db.GetMessageById(conv.LastMessage, conv.ConvId)
 			if err != nil {
 				http.Error(w, "Bad Request"+err.Error(), http.StatusBadRequest)
 				return
 			}
 
-			SenderUserDB, err := rt.db.GetUserById(message.SenderUserId)
+			senderUser, err := rt.db.GetUserById(message.SenderId)
 			if err != nil {
 				http.Error(w, "Bad Request"+err.Error(), http.StatusBadRequest)
 				return
 			}
 
-			var senderUser structions.User
-			err = senderUser.ConvertUserFromDB(SenderUserDB)
+			users, err := rt.db.GetUsersByGroupId(conv.GroupId)
 			if err != nil {
 				http.Error(w, "Bad Request"+err.Error(), http.StatusBadRequest)
 				return
-			}
-
-			users, err := rt.db.GetMembers(conv.GroupId)
-			if err != nil {
-				http.Error(w, "Bad Request"+err.Error(), http.StatusBadRequest)
-				return
-			}
-
-			var groupUsers []structions.User
-			for i := 0; i < len(users); i++ {
-				userDB, err := rt.db.GetUserById(users[i].UserId)
-				if err != nil {
-					http.Error(w, "Bad Request"+err.Error(), http.StatusBadRequest)
-				return
-				}
-				var user structions.User
-				err = user.ConvertUserFromDB(userDB)
-				if err != nil {
-					http.Error(w, "Bad Request"+err.Error(), http.StatusBadRequest)
-				return
-				}
-				groupUsers = append(groupUsers, user)
 			}
 
 			response[idx] = ConvObject{
 				Conversation: conv,
 				Group:        group,
-				GroupUsers:   groupUsers,
+				GroupUsers:   users,
 				Message:      message,
 				SenderUser:   senderUser,
 			}

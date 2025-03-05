@@ -2,8 +2,8 @@ package database
 
 import (
 	"progetto.wasa/service/api/structions"
-	
 )
+
 var queryGetConversations = `SELECT convId FROM usersConvTable WHERE userId = ?`
 
 func (db *appdbimpl) GetConversationsByUserId(userId int) ([]structions.Conversation, error) {
