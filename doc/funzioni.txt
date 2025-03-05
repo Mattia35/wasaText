@@ -1,0 +1,16 @@
+-----doLogin
+getMyConversations
+-----conversationCreation
+getConversation
+sendMessage
+forwardMessage
+deleteMessage
+commentMessage
+uncommentMessage
+-----groupCreation
+addToGroup
+leaveGroup
+setGroupPhoto
+-----setGroupName
+-----setMyUserName
+setMyPhoto

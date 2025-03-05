@@ -55,6 +55,9 @@ type AppDatabase interface {
 	AddMessageToConv(MessageId int, ConvId int) (error)
 	GetUserById(userId int) (structions.User, error)
 	GetConvByUsers(userId int, destId int) (int, error)
+	GetConversationsByUserId(userId int) ([]structions.Conversation, error)
+	GetConvById(convId int) (structions.Conversation, error)
+	GetUserByConv(convId int, userId int) (structions.User, error)
 	Ping() error
 }
 
