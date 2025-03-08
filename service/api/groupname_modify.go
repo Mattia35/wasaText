@@ -27,7 +27,7 @@ func (rt *_router) GroupNameModify (w http.ResponseWriter, r *http.Request, ps h
 	}
 
 	// Get the groupId
-	GroupId, err := strconv.Atoi(ps.ByName("group"))
+	GroupId, err := strconv.Atoi(ps.ByName("group_id"))
 	if err != nil {
 		http.Error(w, "Bad Request"+err.Error(), http.StatusBadRequest)
 		return
@@ -44,13 +44,18 @@ func (rt *_router) GroupNameModify (w http.ResponseWriter, r *http.Request, ps h
 		http.Error(w, "User couldn't modify the groupname"+err.Error(), http.StatusBadRequest)
 		return
 	}
+	type RequestBody struct {
+		Groupname string `json:"groupname"`
+	}
+	var request RequestBody
 
 	var group structions.Group
 	// Check if the user makes a bad request
-	if err := json.NewDecoder(r.Body).Decode(&group); err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		http.Error(w, "Bad Request"+err.Error(), http.StatusBadRequest)
 		return
 	}
+	group.Username = request.Groupname
 
 	// Check if the group respects the regex, so there is a bad request
 	if !group.IsValid() {

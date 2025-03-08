@@ -25,7 +25,7 @@ func (rt *_router) CreateConv(w http.ResponseWriter, r *http.Request, ps httprou
 	}
 
 	// Check if the destination user request is valid
-	DestId, err := strconv.Atoi(ps.ByName("dest"))
+	DestId, err := strconv.Atoi(ps.ByName("receiver_id"))
 	if err != nil {
 		http.Error(w, "Bad Request"+err.Error(), http.StatusBadRequest)
 		return
@@ -54,16 +54,21 @@ func (rt *_router) CreateConv(w http.ResponseWriter, r *http.Request, ps httprou
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-
+	type RequestBody struct {
+		Text string `json:"text"`
+	}
+	var request RequestBody
 	// Take the message to sent from the Request
 	var message structions.Message
-	err = json.NewDecoder(r.Body).Decode(&message)
+	err = json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
 		http.Error(w, "Bad Request"+err.Error(), http.StatusBadRequest)
 		return
 	}
+	message.Text = request.Text
 	message.SenderId = UserId
 	message.Status = false
+	message.ConvId = conversation.ConvId
 
 	// Create the message
 	message, err = rt.db.CreateMessage(message)
@@ -80,7 +85,21 @@ func (rt *_router) CreateConv(w http.ResponseWriter, r *http.Request, ps httprou
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-
+	conversation.LastMessage = message.MessageId
+	// Add the user to the conversation
+	err = rt.db.AddUserToConv(UserId, conversation.ConvId)
+	if err != nil {
+		ctx.Logger.WithError(err).Error("you can't add a user to the group")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	// Add the destination user to the conversation
+	err = rt.db.AddUserToConv(DestId, conversation.ConvId)
+	if err != nil {
+		ctx.Logger.WithError(err).Error("you can't add a user to the group")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 	w.WriteHeader(http.StatusCreated)
 		// Response
 	w.Header().Set("content-type", "application/json")

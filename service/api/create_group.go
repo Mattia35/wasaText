@@ -45,16 +45,14 @@ func (rt *_router) CreateGroup(w http.ResponseWriter, r *http.Request, ps httpro
 	}
 	var conversation structions.Conversation
 
-	var groupIdAPI int
-
 	// Create the group
-	group, groupIdAPI, err = rt.db.CreateGroup(group, UserId, conversation.ConvId)
+	group, err = rt.db.CreateGroup(group, UserId)
 	if err != nil {
 		ctx.Logger.WithError(err).Error("can't create the group")
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	group.GroupId = groupIdAPI
+
 	w.WriteHeader(http.StatusCreated)
 	conversation.GroupId = group.GroupId
 	// Create the group conversation
@@ -64,17 +62,29 @@ func (rt *_router) CreateGroup(w http.ResponseWriter, r *http.Request, ps httpro
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+	err = rt.db.AddUserToConv(UserId, conversation.ConvId)
+	if err != nil {
+		ctx.Logger.WithError(err).Error("you can't add a user to the group")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 	// Add users to the group conversation
 	for i := 0; i < len(request.Users); i++ {
-		err := rt.db.UserControlByUsername(request.Users[i].Username)
+		user,err := rt.db.UserControlByUsername(request.Users[i].Username)
 		if err != nil {
 			ctx.Logger.WithError(err).Error("you can't add a user to the group, because it doesn't exist")
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
-		err = rt.db.AddUserToGroup(request.Users[i].UserId, group.GroupId)
+		err = rt.db.AddUserToGroup(user.UserId, group.GroupId)
 		if err != nil {
 			ctx.Logger.WithError(err).Error("you can't add a user to the group")
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		err = rt.db.AddUserToConv(user.UserId, conversation.ConvId)
+		if err != nil {
+			ctx.Logger.WithError(err).Error("you can't add a user to the conversation of the group")
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
@@ -110,8 +120,6 @@ func (rt *_router) CreateGroup(w http.ResponseWriter, r *http.Request, ps httpro
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-
-	w.WriteHeader(http.StatusCreated)
 
 	// Response
 	w.Header().Set("content-type", "application/json")

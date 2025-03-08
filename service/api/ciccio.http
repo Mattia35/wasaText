@@ -1,7 +1,69 @@
+# USERNAME MODIFY #
 PUT http://localhost:3000/users/1/username HTTP/1.1
 Authorization: 1
 Content-Type: application/json
 
 {
-    "username":"ciccia"
+    "username":"ciuccia"
 }
+
+###
+
+# DO LOGIN #
+POST http://localhost:3000/session  HTTP/1.1
+content-type: application/json
+
+{
+    "username": "ciuccia"
+}
+
+###
+
+# DO LOGIN #
+POST http://localhost:3000/session  HTTP/1.1
+content-type: application/json
+
+{
+    "username": "cazzo"
+}
+
+###
+
+# CREATE GROUP #
+POST http://localhost:3000/users/1/groups  HTTP/1.1
+Authorization: 1
+content-type: application/json
+
+{
+    "groupname": "fate",
+    "users" : [
+        {
+            "username": "cazzo"
+        }
+    ]
+}
+
+### 
+
+# SET GROUPNAME #
+PUT http://localhost:3000/users/1/groups/1/name HTTP/1.1
+Authorization: 1
+content-type: application/json
+
+{
+    "groupname": "negletti"
+}
+
+###
+
+
+# CREATE CONVERSATION #
+
+PUT http://localhost:3000/users/1/conversations/2  HTTP/1.1
+Authorization: 1
+
+{
+    "text" : "grande capo bianco"
+}
+
+###

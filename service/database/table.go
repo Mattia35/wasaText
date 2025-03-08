@@ -16,7 +16,7 @@ var convTable = `CREATE TABLE IF NOT EXISTS convTable (
 	convId INTEGER NOT NULL,
 	groupId INTEGER,
 	lastMessageId INTEGER,
-	PRIMARY KEY (convId, senderId)
+	PRIMARY KEY (convId)
 	CONSTRAINT conversation 
 		FOREIGN KEY (groupId) REFERENCES groupTable (groupId)
 			ON DELETE CASCADE
@@ -41,7 +41,7 @@ var messTable = `CREATE TABLE IF NOT EXISTS messTable (
 );`
 
 var usersGroupTable = `CREATE TABLE IF NOT EXISTS usersGroupTable (
-	groupId INTEGER NOT NULL UNIQUE,
+	groupId INTEGER NOT NULL,
 	userId INTEGER NOT NULL,
 	PRIMARY KEY (groupId, userId)
 	CONSTRAINT usersGroup 
@@ -52,7 +52,7 @@ var usersGroupTable = `CREATE TABLE IF NOT EXISTS usersGroupTable (
 );`
 
 var usersConvTable = `CREATE TABLE IF NOT EXISTS usersConvTable (
-	convId INTEGER NOT NULL UNIQUE,
+	convId INTEGER NOT NULL,
 	userId INTEGER NOT NULL,
 	PRIMARY KEY (convId, userId)
 	CONSTRAINT usersConv

@@ -6,8 +6,8 @@ import (
 	"progetto.wasa/service/api/structions"
 )
 
-var query_ADDMESS = `INSERT INTO messageTable (messId, dateTime, text, status, convId, Photo, senderId) VALUES (?, ?, ?, ?, ?, ?, ?);`
-var query_MAXMESSID = `SELECT MAX(messId) FROM userTable`
+var query_ADDMESS = `INSERT INTO messTable (messId, dateTime, text, status, convId, Photo, senderId) VALUES (?, ?, ?, ?, ?, ?, ?);`
+var query_MAXMESSID = `SELECT MAX(messId) FROM messTable WHERE convId = ?;`
 
 func (db *appdbimpl) CreateMessage(mes structions.Message) (structions.Message, error) {
 	var message structions.Message
@@ -19,7 +19,7 @@ func (db *appdbimpl) CreateMessage(mes structions.Message) (structions.Message, 
 
 	// ------FIND MESSID---------//
 	var _maxID = sql.NullInt64{Int64: 0, Valid: false}
-	row, err := db.c.Query(query_MAXMESSID)
+	row, err := db.c.Query(query_MAXMESSID, message.ConvId)
 	if err != nil {
 		return message, err
 	}

@@ -1,8 +1,8 @@
 package database
 
 
-func (db *appdbimpl) AddUserToConv(userId int, groupId int) (error) {
-	_, err := db.c.Exec(query_ADDCONVUSER, groupId, userId)
+func (db *appdbimpl) AddUserToConv(userId int, convId int) (error) {
+	_, err := db.c.Exec(query_ADDCONVUSER, convId, userId)
 	if err != nil {
 		return err
 	}

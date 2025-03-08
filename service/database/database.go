@@ -44,15 +44,16 @@ type AppDatabase interface {
 	GetUserByName(username string) (structions.User, error)
 	GetGroupByGroupId(groupId int) (structions.Group, error)
 	CreateUser(u structions.User) (structions.User, error)
-	UsernameModify(userId int, username string) error
+	UsernameModify(userId int, username string) (error)
 	UserControlByGroup(userId int, groupId int) (bool, error)
-	GroupnameModify(groupId int, groupname string) error
-	CreateGroup(gr structions.Group, convId int, userId int) (structions.Group, int, error)
+	GroupnameModify(groupId int, groupname string) (error)
+	CreateGroup(gr structions.Group, userId int) (structions.Group, error)
 	CreateConversation(conv structions.Conversation) (structions.Conversation, error)
-	UserControlByUsername(username string) error
-	AddUserToGroup(userId int, groupId int) error
+	UserControlByUsername(username string) (structions.User, error)
+	AddUserToConv(userId int, convId int) (error)
+	AddUserToGroup(userId int, groupId int) (error)
 	CreateMessage(mes structions.Message) (structions.Message, error)
-	AddMessageToConv(MessageId int, ConvId int) error
+	AddMessageToConv(MessageId int, ConvId int) (error)
 	GetUserById(userId int) (structions.User, error)
 	GetConvByUsers(userId int, destId int) (int, error)
 	GetConversationsByUserId(userId int) ([]structions.Conversation, error)
@@ -60,7 +61,7 @@ type AppDatabase interface {
 	GetUserByConv(convId int, userId int) (structions.User, error)
 	GetMessageById(LastMessage int, ConvId int) (structions.Message, error)
 	GetUsersByGroupId(groupId int) ([]structions.User, error)
-	Ping() error
+	Ping() (error)
 }
 
 type appdbimpl struct {
@@ -82,7 +83,7 @@ func New(db *sql.DB) (AppDatabase, error) {
 
 	// Check of the number of table is corret (there are 5 tables)
 	// if the number of table is not 5, we creating missing tables
-	if tableSQL != 5 {
+	if tableSQL != 6 {
 
 		// Craetion of the user tabel
 		_, err = db.Exec(userTable)
