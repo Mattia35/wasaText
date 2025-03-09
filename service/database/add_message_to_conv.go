@@ -10,8 +10,5 @@ func (db *appdbimpl) AddMessageToConv(MessageId int, ConvId int) (error) {
 		Valid: isValid,
 	}
 	_, err := db.c.Exec(query_ADDMESSCONV, messId, ConvId)
-	if err != nil {
-		return err
-	}
 	return err
 }

@@ -61,6 +61,15 @@ type AppDatabase interface {
 	GetUserByConv(convId int, userId int) (structions.User, error)
 	GetMessageById(LastMessage int, ConvId int) (structions.Message, error)
 	GetUsersByGroupId(groupId int) ([]structions.User, error)
+	IsUserInGroup(userId int, groupId int) (bool, error)
+	RemoveUserFromGroup(userId int, groupId int) (error)
+	GetConvByGroupId(groupId int) (structions.Conversation, error)
+	RemoveUserFromConv(userId int, convId int) (error)
+	RemoveGroup(groupId int) (error)
+	RemoveConv(convId int) (error)
+	GetMaxMessageId(convId int) (int, error)
+	RemoveMessage(convId int) (error)
+	CheckMessageSender(messId int, userId int) (bool, error)
 	Ping() (error)
 }
 

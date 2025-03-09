@@ -70,7 +70,7 @@ func (rt *_router) GetConversations(w http.ResponseWriter, r *http.Request, ps h
 				http.Error(w, "Bad Request"+err.Error(), http.StatusBadRequest)
 				return
 			}
-
+			// Get the sender of the last message
 			senderUser, err := rt.db.GetUserById(message.SenderId)
 			if err != nil {
 				http.Error(w, "Bad Request"+err.Error(), http.StatusBadRequest)
@@ -97,7 +97,7 @@ func (rt *_router) GetConversations(w http.ResponseWriter, r *http.Request, ps h
 				http.Error(w, "Bad Request"+err.Error(), http.StatusBadRequest)
 				return
 			}
-
+			// Get the sender of the last message
 			senderUser, err := rt.db.GetUserById(message.SenderId)
 			if err != nil {
 				http.Error(w, "Bad Request"+err.Error(), http.StatusBadRequest)

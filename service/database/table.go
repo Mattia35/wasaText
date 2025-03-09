@@ -20,8 +20,6 @@ var convTable = `CREATE TABLE IF NOT EXISTS convTable (
 	CONSTRAINT conversation 
 		FOREIGN KEY (groupId) REFERENCES groupTable (groupId)
 			ON DELETE CASCADE
-		FOREIGN KEY (lastMessageId, convId) REFERENCES messTable (messId, convId)
-			ON DELETE CASCADE
 );`
 
 var messTable = `CREATE TABLE IF NOT EXISTS messTable (
