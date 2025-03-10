@@ -73,12 +73,11 @@ var usersConvTable = `CREATE TABLE IF NOT EXISTS usersConvTable (
 );`
 
 var commentTable = `CREATE TABLE IF NOT EXISTS commentTable (
-	commentId INTEGER NOT NULL UNIQUE,
 	messId INTEGER NOT NULL,
 	content TEXT NOT NULL,
 	senderId INTEGER NOT NULL,
 	convId INTEGER NOT NULL,
-	PRIMARY KEY (commentId, messId, senderId, convId)
+	PRIMARY KEY (messId, senderId, convId)
 	CONSTRAINT message
 		FOREIGN KEY (messId, convId) REFERENCES messTable (messId, convId)
 			ON DELETE CASCADE

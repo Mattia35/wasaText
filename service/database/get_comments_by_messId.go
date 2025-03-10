@@ -5,9 +5,9 @@ import (
 )
 
 // get all comments of a message
-var query_GETCOMMENTSBYMESSID = `SELECT commentId, messId, content, senderId, convId FROM commentTable WHERE messId = ?;`
+var query_GETCOMMENTSBYMESSID = `SELECT messId, content, senderId, convId FROM commentTable WHERE messId = ?;`
 
-func (db *appdbimpl) GetCommentsByMessId(messId int) ([]structions.Comment, error) {
+func (db *appdbimpl) GetCommentsByMessId(messId int, convId int) ([]structions.Comment, error) {
 	rows, err := db.c.Query(query_GETCOMMENTSBYMESSID, messId)
 	if err != nil {
 		return nil, err
@@ -17,7 +17,7 @@ func (db *appdbimpl) GetCommentsByMessId(messId int) ([]structions.Comment, erro
 	var comments []structions.Comment
 	for rows.Next() {
 		var comment structions.Comment
-		err := rows.Scan(&comment.CommentId, &comment.MessageId, &comment.Content, &comment.SenderId, &comment.ConvId)
+		err := rows.Scan(&comment.MessageId, &comment.Content, &comment.SenderId, &comment.ConvId)
 		if err != nil {
 			return nil, err
 		}

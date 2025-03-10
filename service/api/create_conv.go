@@ -25,7 +25,7 @@ func (rt *_router) CreateConv(w http.ResponseWriter, r *http.Request, ps httprou
 	}
 
 	// Check if the destination user request is valid
-	DestId, err := strconv.Atoi(ps.ByName("receiver_id"))
+	DestId, err := strconv.Atoi(ps.ByName("conv_id"))
 	if err != nil {
 		http.Error(w, "Bad Request"+err.Error(), http.StatusBadRequest)
 		return

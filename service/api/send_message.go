@@ -125,9 +125,6 @@ func (rt *_router) SendMessage(w http.ResponseWriter, r *http.Request, ps httpro
 		response.MessToreplyTo = MessToreplyTo
 	}
 
-	// Set the dateTime of the message
-	
-
 	// Insert the message in the db
 	mess, err = rt.db.CreateMessage(mess)
 	if err != nil {

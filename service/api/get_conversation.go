@@ -116,7 +116,7 @@ func (rt *_router) GetConversation(w http.ResponseWriter, r *http.Request, ps ht
 			return
 		}
 		// Get the comments
-		comments, err := rt.db.GetCommentsByMessId(messages[i].MessageId)
+		comments, err := rt.db.GetCommentsByMessId(messages[i].MessageId, convId)
 		if err != nil {
 			http.Error(w, "Internal server error H"+err.Error(), http.StatusInternalServerError)
 			return

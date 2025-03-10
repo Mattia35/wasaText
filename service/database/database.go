@@ -76,9 +76,12 @@ type AppDatabase interface {
 	CheckIfUserHasReadMess(messId int, userId int) (bool, error)
 	CheckAllUsersHaveReadMess(messId int) (bool, error)
 	UpdateMessageStatus(messId int) error
-	GetCommentsByMessId(messId int) ([]structions.Comment, error)
+	GetCommentsByMessId(messId int, convId int) ([]structions.Comment, error)
 	GetUsersByConvId(convId int) ([]structions.User, error)
 	AddUserToListOfAlreadyReadersOfMess(messId int, userId int, convId int) error
+	CheckIfUserHasAlreadyCommented(messId, userId, convId int) (bool, error)
+	CreateComment(com structions.Comment) (structions.Comment, error)
+	UpdateComment(userId int, messId int, convId int, emoji string) error
 	Ping() (error)
 }
 
