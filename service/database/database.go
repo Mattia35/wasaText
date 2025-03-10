@@ -62,6 +62,7 @@ type AppDatabase interface {
 	GetMessageById(LastMessage int, ConvId int) (structions.Message, error)
 	GetUsersByGroupId(groupId int) ([]structions.User, error)
 	IsUserInGroup(userId int, groupId int) (bool, error)
+	IsUserInConv(userId int, convId int) (bool, error)
 	RemoveUserFromGroup(userId int, groupId int) (error)
 	GetConvByGroupId(groupId int) (structions.Conversation, error)
 	RemoveUserFromConv(userId int, convId int) (error)
@@ -70,6 +71,14 @@ type AppDatabase interface {
 	GetMaxMessageId(convId int) (int, error)
 	RemoveMessage(convId int) (error)
 	CheckMessageSender(messId int, userId int) (bool, error)
+	GetMessagesByConvId(convId int) ([]structions.Message, error)
+	AddUserToListOfReadersOfMess(messId int, userId int, convId int) error
+	CheckIfUserHasReadMess(messId int, userId int) (bool, error)
+	CheckAllUsersHaveReadMess(messId int) (bool, error)
+	UpdateMessageStatus(messId int) error
+	GetCommentsByMessId(messId int) ([]structions.Comment, error)
+	GetUsersByConvId(convId int) ([]structions.User, error)
+	AddUserToListOfAlreadyReadersOfMess(messId int, userId int, convId int) error
 	Ping() (error)
 }
 
@@ -92,9 +101,9 @@ func New(db *sql.DB) (AppDatabase, error) {
 
 	// Check of the number of table is corret (there are 5 tables)
 	// if the number of table is not 5, we creating missing tables
-	if tableSQL != 6 {
+	if tableSQL != 8 {
 
-		// Craetion of the user tabel
+		// Creation of the user tabel
 		_, err = db.Exec(userTable)
 		if err != nil {
 			return nil, fmt.Errorf("error creating database structure user: %w", err)
@@ -128,6 +137,18 @@ func New(db *sql.DB) (AppDatabase, error) {
 		_, err = db.Exec(convTable)
 		if err != nil {
 			return nil, fmt.Errorf("error creating database structure conversation: %w", err)
+		}
+
+		// Creation of the check_message table
+		_, err = db.Exec(checkMessTable)
+		if err != nil {
+			return nil, fmt.Errorf("error creating database structure check message: %w", err)
+		}
+
+		// Creation of the comment table
+		_, err = db.Exec(commentTable)
+		if err != nil {
+			return nil, fmt.Errorf("error creating database structure check message: %w", err)
 		}
 	}
 

@@ -40,8 +40,14 @@ func (rt *_router) GroupNameModify (w http.ResponseWriter, r *http.Request, ps h
 	}
 
 	// Check if the user could modify the groupname
-	if _, err := rt.db.UserControlByGroup(UserId, GroupId); err != nil {
-		http.Error(w, "User couldn't modify the groupname"+err.Error(), http.StatusBadRequest)
+	check, err := rt.db.UserControlByGroup(UserId, GroupId); 
+	if err != nil {
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+	
+	if check == false {
+		http.Error(w, "User can't modify the groupname, because isn't in the group", http.StatusBadRequest)
 		return
 	}
 	type RequestBody struct {

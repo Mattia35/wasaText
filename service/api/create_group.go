@@ -68,7 +68,7 @@ func (rt *_router) CreateGroup(w http.ResponseWriter, r *http.Request, ps httpro
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	// Add users to the group conversation
+	// Add users to the group and conversation
 	for i := 0; i < len(request.Users); i++ {
 		user,err := rt.db.UserControlByUsername(request.Users[i].Username)
 		if err != nil {
@@ -92,7 +92,7 @@ func (rt *_router) CreateGroup(w http.ResponseWriter, r *http.Request, ps httpro
 
 	type Response struct {
 		Group          structions.Group `json:"group"`
-		ConversationId int   `json:"conversationId"`
+		ConversationId int              `json:"conversationId"`
 	}
 
 	var response Response
@@ -100,9 +100,9 @@ func (rt *_router) CreateGroup(w http.ResponseWriter, r *http.Request, ps httpro
 	response.ConversationId = conversation.ConvId
 
 	message := structions.Message{
-		SenderId:   UserId,
-		ConvId: conversation.ConvId,
-		Text:           "You are now part of the group " + group.Username,
+		SenderId:    UserId,
+		ConvId:      conversation.ConvId,
+		Text:        "You are now part of the group " + group.Username,
 	}
 
 	// Create the welcome message
@@ -119,6 +119,28 @@ func (rt *_router) CreateGroup(w http.ResponseWriter, r *http.Request, ps httpro
 		ctx.Logger.WithError(err).Error("server now can't update the last message of the conversation")
 		w.WriteHeader(http.StatusInternalServerError)
 		return
+	}
+
+	// get users of the group
+	users, err := rt.db.GetUsersByGroupId(group.GroupId)
+	if err != nil {
+		http.Error(w, "Error taking the users of the group"+err.Error(), http.StatusBadRequest)
+		return
+	}
+	// Set the users that have read the message: all the users of the group, unless the sender
+	newUsers := make([]structions.User, 0)
+	for i := 0; i < len(users); i++ {
+		if users[i].UserId != UserId {
+			newUsers = append(newUsers, users[i])
+		}
+	}
+	users = newUsers
+	for i := 0; i < len(users); i++ {
+		err = rt.db.AddUserToListOfReadersOfMess(message.MessageId, users[i].UserId, conversation.ConvId)
+		if err != nil {
+			http.Error(w, "Error adding the user to the list of readers of the message"+err.Error(), http.StatusBadRequest)
+			return
+		}
 	}
 
 	// Response

@@ -29,16 +29,29 @@ content-type: application/json
 
 ###
 
+# DO LOGIN #
+POST http://localhost:3000/session  HTTP/1.1
+content-type: application/json
+
+{
+    "username": "dybala"
+}
+
+###
+
 # CREATE GROUP #
-POST http://localhost:3000/users/2/groups  HTTP/1.1
-Authorization: 2
+POST http://localhost:3000/users/1/groups  HTTP/1.1
+Authorization: 1
 content-type: application/json
 
 {
     "groupname": "fate",
     "users" : [
         {
-            "username": "ciuccia"
+            "username": "cazzo"
+        },
+        {
+            "username": "dybala"
         }
     ]
 }
@@ -80,8 +93,8 @@ Authorization: 1
 ###
 
 # SEND MESSAGE #
-POST http://localhost:3000/users/1/conversations/1/messages  HTTP/1.1
-Authorization: 1
+POST http://localhost:3000/users/2/conversations/1/messages  HTTP/1.1
+Authorization: 2
 Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
 
 ------WebKitFormBoundary7MA4YWxkTrZu0gW
@@ -106,3 +119,27 @@ DELETE http://localhost:3000/users/2/conversations/1/messages/1  HTTP/1.1
 Authorization: 2
 
 ###
+
+# ADD TO GROUP #
+PUT http://localhost:3000/users/2/groups/1  HTTP/1.1
+Authorization: 2
+content-type: application/json
+
+{
+    "users" : [
+        {
+            "username": "totti"
+        },
+        {
+            "username": "de_rossi"
+        }
+    ]
+}
+
+###
+
+# GET CONVERSATION #
+GET http://localhost:3000/users/3/conversations/1  HTTP/1.1
+Authorization: 3
+
+### 

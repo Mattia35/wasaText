@@ -3,6 +3,8 @@ package database
 import (
 	"database/sql"
 	"errors"
+	"time"
+
 	"progetto.wasa/service/api/structions"
 )
 
@@ -11,6 +13,7 @@ var query_MAXMESSID = `SELECT MAX(messId) FROM messTable WHERE convId = ?;`
 
 func (db *appdbimpl) CreateMessage(mes structions.Message) (structions.Message, error) {
 	var message structions.Message
+	message.DateTime = time.Now()
 	message.SenderId = mes.SenderId
 	message.Text = mes.Text
 	message.ConvId = mes.ConvId

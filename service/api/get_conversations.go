@@ -58,6 +58,7 @@ func (rt *_router) GetConversations(w http.ResponseWriter, r *http.Request, ps h
 				http.Error(w, "Bad Request"+err.Error(), http.StatusBadRequest)
 				return
 			}
+			// Get the user
 			user, err := rt.db.GetUserById(userID.UserId)
 			if err != nil {
 				http.Error(w, "Bad Request"+err.Error(), http.StatusBadRequest)
@@ -103,7 +104,7 @@ func (rt *_router) GetConversations(w http.ResponseWriter, r *http.Request, ps h
 				http.Error(w, "Bad Request"+err.Error(), http.StatusBadRequest)
 				return
 			}
-
+			// Get the users of the group
 			users, err := rt.db.GetUsersByGroupId(conv.GroupId)
 			if err != nil {
 				http.Error(w, "Bad Request"+err.Error(), http.StatusBadRequest)

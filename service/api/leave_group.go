@@ -32,9 +32,14 @@ func (rt *_router) LeaveGroup(w http.ResponseWriter, r *http.Request, ps httprou
 	}
 
 	// Check if the user is in the group
-	isInGroup, err := rt.db.IsUserInGroup(UserId, groupId)
-	if err != nil || !isInGroup {
-		http.Error(w, "Bad Request"+err.Error(), http.StatusBadRequest)
+	check, err := rt.db.IsUserInGroup(UserId, groupId)
+
+	if err != nil {
+		http.Error(w, "Internal server error"+err.Error(), http.StatusInternalServerError)
+		return
+	}
+	if check == false {
+		http.Error(w, "User already is in the group", http.StatusBadRequest)
 		return
 	}
 

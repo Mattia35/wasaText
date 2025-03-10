@@ -28,6 +28,7 @@ func (rt *_router) SendMessage(w http.ResponseWriter, r *http.Request, ps httpro
 		return
 	}
 
+	// Get the conversation id
 	convId, err := strconv.Atoi(ps.ByName("conv_id"))
 	if err != nil {
 		http.Error(w, "Bad Request"+err.Error(), http.StatusBadRequest)
@@ -94,7 +95,7 @@ func (rt *_router) SendMessage(w http.ResponseWriter, r *http.Request, ps httpro
 		fileType := http.DetectContentType(data)
 		if fileType != "image/jpeg" {
 			json.NewEncoder(w).Encode(fileType)
-			http.Error(w, "Bad Request, wrong file type", http.StatusBadRequest)
+			http.Error(w, "Bad Request, wrong file type"+err.Error(), http.StatusBadRequest)
 			return
 		}
 		defer func() { err = file.Close() }()
@@ -117,25 +118,51 @@ func (rt *_router) SendMessage(w http.ResponseWriter, r *http.Request, ps httpro
 		// Get the message by the id
 		MessToreplyTo, err := rt.db.GetMessageById(messIdToReplyTo, conv.ConvId)
 		if err != nil {
-			http.Error(w, "Error taking the message by the id", http.StatusBadRequest)
+			http.Error(w, "Error taking the message by the id"+err.Error(), http.StatusBadRequest)
 			return
 		}
 		// Set the message query in the response
 		response.MessToreplyTo = MessToreplyTo
 	}
 
+	// Set the dateTime of the message
+	
+
 	// Insert the message in the db
 	mess, err = rt.db.CreateMessage(mess)
 	if err != nil {
-		http.Error(w, "Error insert the message in the database", http.StatusBadRequest)
+		http.Error(w, "Error insert the message in the database"+err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	// Update the last message
 	err = rt.db.AddMessageToConv(mess.MessageId, conv.ConvId)
 	if err != nil {
-		http.Error(w, "Error updating last message id", http.StatusBadRequest)
+		http.Error(w, "Error updating last message id"+err.Error(), http.StatusBadRequest)
 		return
+	}
+
+	// get users of the conversation
+	users, err := rt.db.GetUsersByConvId(conv.ConvId)
+	if err != nil {
+		http.Error(w, "Error taking the users of the conversation"+err.Error(), http.StatusBadRequest)
+		return
+	}
+	// Set the users that have read the message: all the users of the group, unless the sender
+	newUsers := make([]structions.User, 0)
+	for i := 0; i < len(users); i++ {
+		if users[i].UserId != UserId {
+			newUsers = append(newUsers, users[i])
+		}
+	}
+	users = newUsers
+	// Set the users that have read the message
+	for i := 0; i < len(users); i++ {
+		err = rt.db.AddUserToListOfReadersOfMess(mess.MessageId, users[i].UserId, conv.ConvId)
+		if err != nil {
+			http.Error(w, "Error adding the user to the list of readers of the message"+err.Error(), http.StatusBadRequest)
+			return
+		}
 	}
 
 	// Set the message sended in the response

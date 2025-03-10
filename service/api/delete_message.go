@@ -46,12 +46,12 @@ func (rt *_router) DeleteMessage(w http.ResponseWriter, r *http.Request, ps http
 
 	// Check if the user is the sender of the message
 	check, err := rt.db.CheckMessageSender(messId, UserId); 
-	if check==false {
-		http.Error(w, "User isn't the sender of the message", http.StatusBadRequest)
-		return
-	}
 	if err != nil {
 		http.Error(w, "Internal Server Error"+err.Error(), http.StatusInternalServerError)
+		return
+	}
+	if check==false {
+		http.Error(w, "User isn't the sender of the message", http.StatusBadRequest)
 		return
 	}
 	// Get the max message id
