@@ -19,7 +19,8 @@ func (rt *_router) Handler() http.Handler {
 	rt.router.POST(   "/users/:user/conversations/:conv_id/messages", rt.wrap(rt.SendMessage, true))
 	rt.router.DELETE( "/users/:user/conversations/:conv_id/messages/:mess_id", rt.wrap(rt.DeleteMessage, true))
 	rt.router.PUT(    "/users/:user/conversations/:conv_id/messages/:mess_id/comments", rt.wrap(rt.CommentMessage, true))
-	
+	rt.router.DELETE( "/users/:user/conversations/:conv_id/messages/:mess_id/comments/:comm_id", rt.wrap(rt.UncommentMessage, true))
+
 	// Special routes
 	rt.router.GET("/liveness", rt.liveness)
 

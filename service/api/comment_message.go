@@ -101,14 +101,14 @@ func (rt *_router) CommentMessage(w http.ResponseWriter, r *http.Request, ps htt
 		// Update the comment in the db
 		err = rt.db.UpdateComment(UserId, messId, convId, request.Emoji)
 		if err != nil {
-			http.Error(w, "Error update the message in the database"+err.Error(), http.StatusBadRequest)
+			http.Error(w, "Error update the comment in the database"+err.Error(), http.StatusBadRequest)
 			return
 		}
 	} else{
 		// Insert the comment in the db
 		comment, err = rt.db.CreateComment(comment)
 		if err != nil {
-			http.Error(w, "Error insert the message in the database"+err.Error(), http.StatusBadRequest)
+			http.Error(w, "Error insert the comment in the database"+err.Error(), http.StatusBadRequest)
 			return
 		}
 	}

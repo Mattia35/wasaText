@@ -82,6 +82,9 @@ type AppDatabase interface {
 	CheckIfUserHasAlreadyCommented(messId, userId, convId int) (bool, error)
 	CreateComment(com structions.Comment) (structions.Comment, error)
 	UpdateComment(userId int, messId int, convId int, emoji string) error
+	IsCommentInConv(commId int, messId int, convId int) (bool, error)
+	GetCommentById(commId int, messId int, convId int) (structions.Comment, error)
+	RemoveComment(commId int, messId int, convId int) (error)
 	Ping() (error)
 }
 

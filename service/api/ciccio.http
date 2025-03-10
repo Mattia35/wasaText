@@ -40,15 +40,15 @@ content-type: application/json
 ###
 
 # CREATE GROUP #
-POST http://localhost:3000/users/1/groups  HTTP/1.1
-Authorization: 1
+POST http://localhost:3000/users/2/groups  HTTP/1.1
+Authorization: 2
 content-type: application/json
 
 {
     "groupname": "fate",
     "users" : [
         {
-            "username": "cazzo"
+            "username": "ciuccia"
         },
         {
             "username": "dybala"
@@ -71,11 +71,11 @@ content-type: application/json
 
 # CREATE CONVERSATION #
 
-PUT http://localhost:3000/users/1/conversations/2  HTTP/1.1
-Authorization: 1
+PUT http://localhost:3000/users/2/conversations/3  HTTP/1.1
+Authorization: 2
 
 {
-    "text" : "grande capo bianco"
+    "text" : "sesso dybaliano"
 }
 
 ###
@@ -139,8 +139,8 @@ content-type: application/json
 ###
 
 # GET CONVERSATION #
-GET http://localhost:3000/users/3/conversations/1  HTTP/1.1
-Authorization: 3
+GET http://localhost:3000/users/1/conversations/1  HTTP/1.1
+Authorization: 1
 
 ### 
 
@@ -154,3 +154,8 @@ content-type: application/json
 }
 
 ### 
+
+# UNCOMMENT MESSAGE #
+DELETE http://localhost:3000/users/1/conversations/1/messages/1/comments/1 HTTP/1.1
+Authorization: 1
+content-type: application/json

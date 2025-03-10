@@ -73,6 +73,7 @@ var usersConvTable = `CREATE TABLE IF NOT EXISTS usersConvTable (
 );`
 
 var commentTable = `CREATE TABLE IF NOT EXISTS commentTable (
+	commId INTEGER NOT NULL UNIQUE,
 	messId INTEGER NOT NULL,
 	content TEXT NOT NULL,
 	senderId INTEGER NOT NULL,

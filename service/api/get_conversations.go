@@ -6,6 +6,7 @@ import (
 	"progetto.wasa/service/api/reqcontext"
 	"strconv"
 	"progetto.wasa/service/api/structions"
+	"sort"
 
 )
 
@@ -49,7 +50,7 @@ func (rt *_router) GetConversations(w http.ResponseWriter, r *http.Request, ps h
 	// Response
 	response := make([]ConvObject, len(conversations))
 
-	// Fornire anche informazioni riguardo gruppi o utenti
+	// Get information about the conversations
 	for idx, conv := range conversations {
 		if conv.GroupId == 0 {
 			// Get the user from the conversation
@@ -120,6 +121,10 @@ func (rt *_router) GetConversations(w http.ResponseWriter, r *http.Request, ps h
 			}
 		}
 	}
+	// Sort the conversations by the last message dateTime
+	sort.Slice(response, func(i, j int) bool {
+		return response[i].Message.DateTime.After(response[j].Message.DateTime)
+	})
 
 	// Write the response
 	w.WriteHeader(http.StatusOK)
