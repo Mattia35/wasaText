@@ -12,6 +12,6 @@ type User struct {
 
 func (user *User) IsValid() bool {
 	username := user.Username
-	validUser := regexp.MustCompile(`^.*$`)
+	validUser := regexp.MustCompile(`^[a-z0-9]{1,15}$`)
 	return validUser.MatchString(username)
 }

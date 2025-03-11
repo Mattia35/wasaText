@@ -3,15 +3,13 @@ package database
 import (
 	"database/sql"
 	"errors"
-	"fmt"
+	"encoding/base64"
 	"io"
 	"os"
-
-	"progetto.wasa/service/api/photoUtils"
 	"progetto.wasa/service/api/structions"
 )
 
-var query_ADDGROUP = `INSERT INTO groupTable (groupId, username) VALUES (?, ?);`
+var query_ADDGROUP = `INSERT INTO groupTable (groupId, username, photo) VALUES (?, ?, ?);`
 var query_ADDGROUPUSER = `INSERT INTO usersGroupTable (groupId, userId) VALUES (?, ?);`
 var query_ADDCONVUSER = `INSERT INTO usersConvTable (convId, userId) VALUES (?, ?);`
 var query_MAXGROUPID = `SELECT MAX(groupId) FROM groupTable`
@@ -47,32 +45,25 @@ func (db *appdbimpl) CreateGroup(gr structions.Group, userId int) (structions.Gr
 	// --------SET GROUPID------------//
 	group.GroupId = maxID + 1
 
-	// --------CREATE GROUP FOLDER------------//
-	path := "./storage/groups/" + fmt.Sprint(group.GroupId)
-	if err := os.MkdirAll(path, os.ModePerm); err != nil {
-		return group, err
-	}
 
-	// --------SET DEFAULT PROPIC------------//
-	source, err := os.Open("./storage/default_profile_photo.jpg")
+	// Get the default profile photo
+	file, err := os.Open("./storage/default_profile_photo.jpg")
 	if err != nil {
 		return group, err
 	}
-	defer source.Close()
+	defer file.Close()
 
-	destination, err := os.Create(photoUtils.GetGroupPhotoPath(group.GroupId))
-	if err != nil {
-		return group, err
-	}
-	defer destination.Close()
-
-	_, err = io.Copy(destination, source)
-	if err != nil {
-		return group, err
-	}
+	// Read the default profile photo
+	data, err := io.ReadAll(file) 
+		if err != nil {
+			return group, err
+		}
+	
+	// Encode the default profile photo
+	group.GroupPhoto = base64.StdEncoding.EncodeToString(data)
 
 	// ------------INSERT GROUP--------------//
-	_, err = db.c.Exec(query_ADDGROUP, group.GroupId, group.Username)
+	_, err = db.c.Exec(query_ADDGROUP, group.GroupId, group.Username, group.GroupPhoto)
 	if err != nil {
 		return group, err
 	}

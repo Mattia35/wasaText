@@ -85,6 +85,9 @@ type AppDatabase interface {
 	IsCommentInConv(commId int, messId int, convId int) (bool, error)
 	GetCommentById(commId int, messId int, convId int) (structions.Comment, error)
 	RemoveComment(commId int, messId int, convId int) (error)
+	SetGroupPhoto(groupId int, base64 string) error
+	SetUserPhoto(userId int, base64 string) error
+	SearchUsers(query string) ([]structions.User, error)
 	Ping() (error)
 }
 

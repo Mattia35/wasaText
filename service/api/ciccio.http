@@ -14,7 +14,7 @@ POST http://localhost:3000/session  HTTP/1.1
 content-type: application/json
 
 {
-    "username": "ciuccia"
+    "username": "cazzo"
 }
 
 ###
@@ -49,9 +49,6 @@ content-type: application/json
     "users" : [
         {
             "username": "ciuccia"
-        },
-        {
-            "username": "dybala"
         }
     ]
 }
@@ -81,8 +78,8 @@ Authorization: 2
 ###
 
 # GET CONVERSATIONS #
-GET http://localhost:3000/users/1/conversations  HTTP/1.1
-Authorization: 1
+GET http://localhost:3000/users/2/conversations  HTTP/1.1
+Authorization: 2
 
 ### 
 
@@ -159,3 +156,39 @@ content-type: application/json
 DELETE http://localhost:3000/users/1/conversations/1/messages/1/comments/1 HTTP/1.1
 Authorization: 1
 content-type: application/json
+
+###
+
+# SET PROFILE PHOTO #
+PUT http://localhost:3000/users/1/photo  HTTP/1.1
+Authorization: 1
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="image"; filename="image.jpeg"
+Content-Type: image/jpeg
+
+< ./image.jpeg
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+###
+
+# SET GROUP PHOTO #
+PUT http://localhost:3000/users/2/groups/1/photo  HTTP/1.1
+Authorization: 2
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="image"; filename="image.jpeg"
+Content-Type: image/jpeg
+
+< ./image.jpeg
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+###
+
+# SEARCH USER #
+GET http://localhost:3000/users?query=ca  HTTP/1.1
+Authorization: 1
+
+###

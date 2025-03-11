@@ -3,12 +3,14 @@ package database
 var userTable = `CREATE TABLE IF NOT EXISTS userTable (
 	userId INTEGER NOT NULL,
 	username STRING NOT NULL UNIQUE,
+	photo STRING,
 	PRIMARY KEY (userId)
 );`
 
 var groupTable = `CREATE TABLE IF NOT EXISTS groupTable (
 	groupId INTEGER NOT NULL,
 	username STRING NOT NULL,
+	photo STRING,
 	PRIMARY KEY (groupId)
 );`
 

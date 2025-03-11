@@ -39,7 +39,7 @@ func (rt *_router) LeaveGroup(w http.ResponseWriter, r *http.Request, ps httprou
 		return
 	}
 	if check == false {
-		http.Error(w, "User already is in the group", http.StatusBadRequest)
+		http.Error(w, "User isn't in the group", http.StatusBadRequest)
 		return
 	}
 

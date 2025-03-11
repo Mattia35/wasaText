@@ -3,22 +3,20 @@ package database
 import (
 	"database/sql"
 	"errors"
-	"fmt"
 	"io"
 	"os"
-
-	"progetto.wasa/service/api/photoUtils"
+	"encoding/base64"
 	"progetto.wasa/service/api/structions"
 )
 
-var query_ADDUSER = `INSERT INTO userTable (userId, username) VALUES (?, ?);`
+var query_ADDUSER = `INSERT INTO userTable (userId, username, photo) VALUES (?, ?, ?);`
 var query_MAXID = `SELECT MAX(userId) FROM userTable`
 
 func (db *appdbimpl) CreateUser(u structions.User) (structions.User, error) {
 	var user structions.User
 	user.Username = u.Username
 
-	// ------FIND USERID---------//
+	// Get the max ID
 	var _maxID = sql.NullInt64{Int64: 0, Valid: false}
 	row, err := db.c.Query(query_MAXID)
 	if err != nil {
@@ -43,35 +41,27 @@ func (db *appdbimpl) CreateUser(u structions.User) (structions.User, error) {
 		}
 	}
 
-	// --------SET USERID------------//
+	// Set the new user ID
 	user.UserId = maxID + 1
 
-	// --------CREATE USER FOLDER------------//
-	path := "./storage/" + fmt.Sprint(user.UserId) + "/conversations"
-	if err := os.MkdirAll(path, os.ModePerm); err != nil {
-		return user, err
-	}
-
-	// --------SET DEFAULT PROPIC------------//
-	source, err := os.Open("./storage/default_profile_photo.jpg")
+	// Get the default profile photo
+	file, err := os.Open("./storage/default_profile_photo.jpg")
 	if err != nil {
 		return user, err
 	}
-	defer source.Close()
+	defer file.Close()
 
-	destination, err := os.Create(photoUtils.GetUserPhotoPath(user.UserId))
-	if err != nil {
-		return user, err
-	}
-	defer destination.Close()
-
-	_, err = io.Copy(destination, source)
-	if err != nil {
-		return user, err
-	}
-
-	// ------------INSERT USER--------------//
-	_, err = db.c.Exec(query_ADDUSER, user.UserId, user.Username)
+	// Read the default profile photo
+	data, err := io.ReadAll(file) 
+		if err != nil {
+			return user, err
+		}
+	
+	// Encode the default profile photo
+	user.UserPhoto = base64.StdEncoding.EncodeToString(data)
+	
+	// Add the user to the database
+	_, err = db.c.Exec(query_ADDUSER, user.UserId, user.Username, user.UserPhoto)
 	if err != nil {
 		return user, err
 	}

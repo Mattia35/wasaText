@@ -72,7 +72,7 @@ func (rt *_router) SendMessage(w http.ResponseWriter, r *http.Request, ps httpro
 	}
 	
 
-	// Check if the message is empty
+	// Get the file
 	file, _, err := r.FormFile("image")
 
 	// Check if the message is empty
@@ -94,8 +94,7 @@ func (rt *_router) SendMessage(w http.ResponseWriter, r *http.Request, ps httpro
 		// Check if the file is a jpeg
 		fileType := http.DetectContentType(data)
 		if fileType != "image/jpeg" {
-			json.NewEncoder(w).Encode(fileType)
-			http.Error(w, "Bad Request, wrong file type"+err.Error(), http.StatusBadRequest)
+			http.Error(w, "Bad Request, wrong file type", http.StatusBadRequest)
 			return
 		}
 		defer func() { err = file.Close() }()
