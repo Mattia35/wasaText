@@ -3,7 +3,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
-
+	"sort"
 	"github.com/julienschmidt/httprouter"
 	"progetto.wasa/service/api/reqcontext"
 	"progetto.wasa/service/api/structions"
@@ -126,6 +126,11 @@ func (rt *_router) GetConversation(w http.ResponseWriter, r *http.Request, ps ht
 
 		response = append(response, MessageData{messages[i], sender, dateTime, comments})
 	}
+
+	// Sort the messages by message dateTime
+	sort.Slice(response, func(i, j int) bool {
+		return response[i].Message.DateTime.After(response[j].Message.DateTime)
+	})
 
 	// Send the response
 	w.WriteHeader(http.StatusOK)
