@@ -38,7 +38,7 @@ func (rt *_router) LeaveGroup(w http.ResponseWriter, r *http.Request, ps httprou
 		http.Error(w, "Internal server error"+err.Error(), http.StatusInternalServerError)
 		return
 	}
-	if check == false {
+	if !check {
 		http.Error(w, "User isn't in the group", http.StatusBadRequest)
 		return
 	}

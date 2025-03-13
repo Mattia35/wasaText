@@ -40,11 +40,15 @@ func (rt *_router) SetMyPhoto(w http.ResponseWriter, r *http.Request, ps httprou
 
 	// Get the file
 	file, _, err := r.FormFile("image")
+	if err != nil {
+		http.Error(w, "Error getting the image file"+err.Error(), http.StatusBadRequest)
+		return
+	}
 	defer file.Close()
 
-	// Check if the message is empty
+	// Check if there is a photo in the request
 	if file == nil {
-		http.Error(w, "The message is empty!"+err.Error(), http.StatusBadRequest)
+		http.Error(w, "The photo isn't in the request!", http.StatusBadRequest)
 		return
 	}
 

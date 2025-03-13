@@ -23,5 +23,8 @@ func (db *appdbimpl) GetUsersByGroupId(groupId int) ([]structions.User, error){
 		}
 		users = append(users, user)
 	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
 	return users, nil
 }

@@ -7,6 +7,8 @@ import (
 	"github.com/julienschmidt/httprouter"
 	"progetto.wasa/service/api/reqcontext"
 	"progetto.wasa/service/api/structions"
+	"database/sql"
+	"errors"
 )
 
 func (rt *_router) ForwardMessage(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext){
@@ -77,7 +79,7 @@ func (rt *_router) ForwardMessage(w http.ResponseWriter, r *http.Request, ps htt
 				}
 			}
 		}
-		if check == true {
+		if check {
 			requestToDelete.DestConvId = append(requestToDelete.DestConvId, request.DestConvId[i])
 		}
 	}
@@ -99,7 +101,7 @@ func (rt *_router) ForwardMessage(w http.ResponseWriter, r *http.Request, ps htt
 				}
 			}
 		}
-		if check == false {
+		if !check {
 			newRequest.DestConvId = append(newRequest.DestConvId, request.DestConvId[i])
 		}
 	}
@@ -124,7 +126,7 @@ func (rt *_router) ForwardMessage(w http.ResponseWriter, r *http.Request, ps htt
 				return
 			}
 			// If the conversation doesn't exist, return an error	
-			if check == false {
+			if !check {
 				http.Error(w, "The group doesn't exist", http.StatusBadRequest)
 				return
 			}
@@ -137,11 +139,11 @@ func (rt *_router) ForwardMessage(w http.ResponseWriter, r *http.Request, ps htt
 			}
 			// Get the conversation by destination id
 			Conver, err = rt.db.GetConversationByUsers(UserId, Dest.UserId)
-			if err != nil && err.Error() != "sql: no rows in result set" {
+			if err != nil && !errors.Is(err, sql.ErrNoRows) {
 				http.Error(w, "Internal server error"+err.Error(), http.StatusInternalServerError)
 				return
 			}
-			if err.Error() == "sql: no rows in result set" {
+			if errors.Is(err, sql.ErrNoRows) {
 				var conversation structions.Conversation
 				conversation.GroupId = 0
 				conversation, err = rt.db.CreateConversation(conversation)

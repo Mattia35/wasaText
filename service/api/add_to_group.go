@@ -37,7 +37,7 @@ func (rt *_router) AddToGroup(w http.ResponseWriter, r *http.Request, ps httprou
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
-	if check == false {
+	if !check {
 		http.Error(w, "User already is in the group", http.StatusBadRequest)
 		return
 	}
@@ -67,7 +67,7 @@ func (rt *_router) AddToGroup(w http.ResponseWriter, r *http.Request, ps httprou
 			http.Error(w, "Internal server error", http.StatusInternalServerError)
 			return
 		}
-		if check == true {
+		if check {
 			http.Error(w, "you can't add a user to the group, because it already is in", http.StatusBadRequest)
 			return
 		}

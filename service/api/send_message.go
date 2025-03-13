@@ -115,7 +115,11 @@ func (rt *_router) SendMessage(w http.ResponseWriter, r *http.Request, ps httpro
 	}
 	// Check if the request have a file, and if it has, encode it 
 	if thereIsImage {
-		file.Seek(0, io.SeekStart)
+		if _, err := file.Seek(0, io.SeekStart); err != nil {
+			http.Error(w, "Error seeking the image file"+err.Error(), http.StatusInternalServerError)
+			return
+		}
+
 		// Read the file
 		data, err := io.ReadAll(file) // In data we have the image file taked in the request
 		if err != nil {
@@ -137,7 +141,10 @@ func (rt *_router) SendMessage(w http.ResponseWriter, r *http.Request, ps httpro
 
 	// Check if the request have a gif, and if it has, encode it 
 	if thereIsGif {
-		fileGif.Seek(0, io.SeekStart)
+		if _, err := fileGif.Seek(0, io.SeekStart); err != nil {
+			http.Error(w, "Error seeking the gif file"+err.Error(), http.StatusInternalServerError)
+			return
+		}
 		// Read the file
 		dataGif, err := io.ReadAll(fileGif) // In data we have the gif file taked in the request
 		if err != nil {

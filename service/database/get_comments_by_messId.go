@@ -23,6 +23,9 @@ func (db *appdbimpl) GetCommentsByMessId(messId int, convId int) ([]structions.C
 		}
 		comments = append(comments, comment)
 	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
 
 	return comments, nil
 }

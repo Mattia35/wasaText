@@ -16,6 +16,9 @@ var query_ALLUSERSHAVEREADMESS = `SELECT userId FROM checkMessTable WHERE messId
 		}
 		userIds = append(userIds, userId)
 	}
+	if err := rows.Err(); err != nil {
+		return false, err
+	}
 	if len(userIds) == 0 {
 		return true, nil
 	}

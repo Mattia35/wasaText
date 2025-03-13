@@ -20,6 +20,9 @@ func (db *appdbimpl) GetMessagesByConvId(convId int) ([]structions.Message, erro
 		}
 		messages = append(messages, m)
 	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
 
 	return messages, nil
 }

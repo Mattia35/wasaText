@@ -50,7 +50,7 @@ func (rt *_router) DeleteMessage(w http.ResponseWriter, r *http.Request, ps http
 		http.Error(w, "Internal Server Error"+err.Error(), http.StatusInternalServerError)
 		return
 	}
-	if check==false {
+	if !check {
 		http.Error(w, "User isn't the sender of the message", http.StatusBadRequest)
 		return
 	}

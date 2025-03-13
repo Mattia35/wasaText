@@ -39,7 +39,7 @@ func (rt *_router) GetConversation(w http.ResponseWriter, r *http.Request, ps ht
 		http.Error(w, "Internal server error A"+err.Error(), http.StatusInternalServerError)
 		return
 	}
-	if check==false {
+	if !check {
 		http.Error(w, "user ins't in this conversation", http.StatusBadRequest)
 		return
 	}
@@ -62,14 +62,14 @@ func (rt *_router) GetConversation(w http.ResponseWriter, r *http.Request, ps ht
 
 	// Update the list of users that have read the messages
 	for i := 0; i < len(messages); i++ {
-		if messages[i].Status == false {
+		if !messages[i].Status {
 			// Control if the user has already read the message
 			check, err := rt.db.CheckIfUserHasReadMess(messages[i].MessageId, UserId)
 			if err != nil {
 				http.Error(w, "Internal server error C"+err.Error(), http.StatusInternalServerError)
 				return
 			}
-			if check == true {
+			if check {
 				continue
 			}
 			// Add the user to the list of users that have read the message
@@ -84,7 +84,7 @@ func (rt *_router) GetConversation(w http.ResponseWriter, r *http.Request, ps ht
 				http.Error(w, "Internal server error E"+err.Error(), http.StatusInternalServerError)
 				return
 			}
-			if check == true {
+			if check {
 				// Update the message status
 				err = rt.db.UpdateMessageStatus(messages[i].MessageId)
 				if err != nil {

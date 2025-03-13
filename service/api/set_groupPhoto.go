@@ -44,7 +44,7 @@ func (rt *_router) SetGroupPhoto(w http.ResponseWriter, r *http.Request, ps http
 		http.Error(w, "Internal server error"+err.Error(), http.StatusInternalServerError)
 		return
 	}
-	if check == false {
+	if !check {
 		http.Error(w, "User isn't in the group", http.StatusBadRequest)
 		return
 	}
@@ -58,11 +58,15 @@ func (rt *_router) SetGroupPhoto(w http.ResponseWriter, r *http.Request, ps http
 
 	// Get the file
 	file, _, err := r.FormFile("image")
+	if err != nil {
+		http.Error(w, "Error getting the image file"+err.Error(), http.StatusBadRequest)
+		return
+	}
 	defer file.Close()
 
-	// Check if the message is empty
+	// Check if there is a photo in the request
 	if file == nil {
-		http.Error(w, "The message is empty!"+err.Error(), http.StatusBadRequest)
+		http.Error(w, "The photo isn't in the request!", http.StatusBadRequest)
 		return
 	}
 

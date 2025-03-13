@@ -78,7 +78,7 @@ func (rt *_router) CommentMessage(w http.ResponseWriter, r *http.Request, ps htt
 	}
 	runee := runes[0]
 	check := unicode.Is(unicode.So, runee)
-	if check == false {
+	if !check {
 		http.Error(w, "The string isn't a emoji", http.StatusBadRequest)
 		return
 	}
@@ -96,7 +96,7 @@ func (rt *_router) CommentMessage(w http.ResponseWriter, r *http.Request, ps htt
 		return
 	}
 
-	if check==true {
+	if check {
 		// Update the comment in the db
 		err = rt.db.UpdateComment(UserId, messId, convId, request.Emoji)
 		if err != nil {

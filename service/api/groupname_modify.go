@@ -45,7 +45,7 @@ func (rt *_router) GroupNameModify (w http.ResponseWriter, r *http.Request, ps h
 		return
 	}
 	
-	if check == false {
+	if !check {
 		http.Error(w, "User can't modify the groupname, because isn't in the group", http.StatusBadRequest)
 		return
 	}
