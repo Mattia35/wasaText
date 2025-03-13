@@ -3,7 +3,6 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
-
 	"github.com/julienschmidt/httprouter"
 	"progetto.wasa/service/api/reqcontext"
 	"progetto.wasa/service/api/structions"
@@ -89,14 +88,14 @@ func (rt *_router) CreateConv(w http.ResponseWriter, r *http.Request, ps httprou
 	// Add the user to the conversation
 	err = rt.db.AddUserToConv(UserId, conversation.ConvId)
 	if err != nil {
-		ctx.Logger.WithError(err).Error("you can't add a user to the group")
+		ctx.Logger.WithError(err).Error("you can't add a user to the conversation")
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 	// Add the destination user to the conversation
 	err = rt.db.AddUserToConv(DestId, conversation.ConvId)
 	if err != nil {
-		ctx.Logger.WithError(err).Error("you can't add a user to the group")
+		ctx.Logger.WithError(err).Error("you can't add a user to the conversation")
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}

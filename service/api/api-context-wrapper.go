@@ -2,7 +2,6 @@ package api
 
 import (
 	"net/http"
-
 	"github.com/gofrs/uuid"
 	"github.com/julienschmidt/httprouter"
 	"github.com/sirupsen/logrus"

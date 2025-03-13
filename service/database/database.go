@@ -89,6 +89,7 @@ type AppDatabase interface {
 	SetUserPhoto(userId int, base64 string) error
 	SearchUsers(query string) ([]structions.User, error)
 	DoConversationExist(ConvId int) (bool, error)
+	GetConversationByUsers(userId int, destId int) (int, error)
 	Ping() (error)
 }
 

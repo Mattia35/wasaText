@@ -7,7 +7,6 @@ import (
 	"strconv"
 	"progetto.wasa/service/api/structions"
 	"sort"
-
 )
 
 func (rt *_router) GetConversations(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {

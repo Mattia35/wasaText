@@ -45,10 +45,10 @@ Authorization: 2
 content-type: application/json
 
 {
-    "groupname": "fate",
+    "groupname": "sesso",
     "users" : [
         {
-            "username": "ciuccia"
+            "username": "dybala"
         }
     ]
 }
@@ -195,11 +195,17 @@ Authorization: 1
 
 # FORWARD MESSAGE #
 
-POST http://localhost:3000/users/2/conversations/1/messages/2  HTTP/1.1
+POST http://localhost:3000/users/2/conversations/1/messages/1  HTTP/1.1
 Authorization: 2
 
-{
-    "destination" : 2
+{   
+    "destination" : [
+        {"group": 1},
+        {"user" : 3},
+        {"user" : 1},
+        {"group" : 2}
+    ]
+            
 }
 
 ###

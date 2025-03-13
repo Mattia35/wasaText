@@ -2,11 +2,9 @@ package api
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"regexp"
 	"sort"
-
 	"github.com/julienschmidt/httprouter"
 	"progetto.wasa/service/api/reqcontext"
 )
@@ -31,7 +29,6 @@ func (rt *_router) SearchUsers(w http.ResponseWriter, r *http.Request, ps httpro
 		return
 	}
 	if len(users) == 0 {
-		fmt.Println(query)
 		http.Error(w, "Not Found", http.StatusNotFound)
 		return
 	}
