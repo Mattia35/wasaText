@@ -11,4 +11,5 @@ type Message struct {
 	ConvId int `json:"convId"`
 	SenderId int `json:"senderId"`
 	Photo string `json:"photo"`
+	Gif string `json:"gif"`
 }

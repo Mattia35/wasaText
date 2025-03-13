@@ -186,6 +186,7 @@ func (rt *_router) ForwardMessage(w http.ResponseWriter, r *http.Request, ps htt
 		mess.SenderId = UserId
 		mess.ConvId = Conver
 		mess.Photo = message.Photo
+		mess.Gif = message.Gif
 
 		// Send the message
 		mess, err = rt.db.CreateMessage(mess)

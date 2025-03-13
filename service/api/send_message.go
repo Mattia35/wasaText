@@ -3,9 +3,11 @@ package api
 import (
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"strconv"
+
 	"github.com/julienschmidt/httprouter"
 	"progetto.wasa/service/api/reqcontext"
 	"progetto.wasa/service/api/structions"
@@ -69,20 +71,51 @@ func (rt *_router) SendMessage(w http.ResponseWriter, r *http.Request, ps httpro
 			messIdToReplyTo = messToReplyTo
 		}
 	}
-	
-
-	// Get the file
+	// Get the image
 	file, _, err := r.FormFile("image")
+	if err == nil && file != nil {
+		buf := make([]byte, 1)
+		n, _ := file.Read(buf)
+		if n == 0 {
+			file = nil
+		}
+	}
+	// Get the gif
+	fileGif, _, err1 := r.FormFile("gif")
+	if err1 == nil && fileGif != nil {
+		buf := make([]byte, 1)
+		n, _ := fileGif.Read(buf)
+		if n == 0 {
+			fileGif = nil
+		}
+	}
 
 	// Check if the message is empty
-	if mess.Text == "null" && file == nil {
+	if mess.Text == "" && file == nil && fileGif == nil {
 		http.Error(w, "The message is empty!"+err.Error(), http.StatusBadRequest)
 		return
 	}
 
-
+	// Check if the message has a gif, a text, a text with an image or an image
+	thereIsText := false
+	thereIsGif := false
+	thereIsImage := false
+	if mess.Text != "" {
+		thereIsText = true
+	}
+	if fileGif != nil {
+		thereIsGif = true
+	}
+	if file != nil {
+		thereIsImage = true
+	}
+	if thereIsGif && (thereIsText || thereIsImage) {
+		http.Error(w, "You can't send a gif with a text or an image", http.StatusBadRequest)
+		return
+	}
 	// Check if the request have a file, and if it has, encode it 
-	if err == nil {
+	if thereIsImage {
+		file.Seek(0, io.SeekStart)
 		// Read the file
 		data, err := io.ReadAll(file) // In data we have the image file taked in the request
 		if err != nil {
@@ -98,8 +131,33 @@ func (rt *_router) SendMessage(w http.ResponseWriter, r *http.Request, ps httpro
 		}
 		defer func() { err = file.Close() }()
 
+		// Encode the image in base64
 		mess.Photo = base64.StdEncoding.EncodeToString(data)
 	}
+
+	// Check if the request have a gif, and if it has, encode it 
+	if thereIsGif {
+		fileGif.Seek(0, io.SeekStart)
+		// Read the file
+		dataGif, err := io.ReadAll(fileGif) // In data we have the gif file taked in the request
+		if err != nil {
+			http.Error(w, "Error reading the gif file"+err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		// Check if the file is a gif
+		fileType := http.DetectContentType(dataGif)
+		if fileType != "image/gif" {
+			fmt.Println(fileType)
+			http.Error(w, "Bad Request, wrong file type", http.StatusBadRequest)
+			return
+		}
+		defer func() { err = fileGif.Close() }()
+
+		// Encode the gif in base64
+		mess.Gif = base64.StdEncoding.EncodeToString(dataGif)
+	}
+
 	// Set the id of the conversation
 	mess.ConvId = conv.ConvId
 	mess.SenderId = UserId

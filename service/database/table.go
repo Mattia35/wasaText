@@ -27,10 +27,11 @@ var convTable = `CREATE TABLE IF NOT EXISTS convTable (
 var messTable = `CREATE TABLE IF NOT EXISTS messTable (
 	messId INTEGER NOT NULL,
 	dateTime DATETIME DEFAULT CURRENT_TIMESTAMP,
-	text TEXT NOT NULL,
+	text TEXT,
 	status BOOLEAN,
 	convId INTEGER NOT NULL,
-	Photo STRING,
+	photo STRING,
+	gif STRING,
 	senderId INTEGER NOT NULL,
 	PRIMARY KEY (messId, convId)
 	CONSTRAINT message

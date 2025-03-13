@@ -3,7 +3,7 @@ package database
 import (
 	"progetto.wasa/service/api/structions"
 )
-var query_GETMESSAGESBYCONVID = `SELECT messId, dateTime, text, status, convId, IFNULL(Photo, ""), senderId FROM messTable WHERE convId = ?`
+var query_GETMESSAGESBYCONVID = `SELECT messId, dateTime, IFNULL(text, ""), status, convId, IFNULL(photo, ""), IFNULL(gif, ""), senderId FROM messTable WHERE convId = ?`
 func (db *appdbimpl) GetMessagesByConvId(convId int) ([]structions.Message, error) {
 	rows, err := db.c.Query(query_GETMESSAGESBYCONVID, convId)
 	if err != nil {
@@ -14,7 +14,7 @@ func (db *appdbimpl) GetMessagesByConvId(convId int) ([]structions.Message, erro
 	var messages []structions.Message
 	for rows.Next() {
 		var m structions.Message
-		err := rows.Scan(&m.MessageId, &m.DateTime, &m.Text, &m.Status, &m.ConvId, &m.Photo, &m.SenderId)
+		err := rows.Scan(&m.MessageId, &m.DateTime, &m.Text, &m.Status, &m.ConvId, &m.Photo, &m.Gif, &m.SenderId)
 		if err != nil {
 			return nil, err
 		}

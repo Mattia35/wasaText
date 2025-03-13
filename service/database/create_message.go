@@ -8,7 +8,7 @@ import (
 	"progetto.wasa/service/api/structions"
 )
 
-var query_ADDMESS = `INSERT INTO messTable (messId, dateTime, text, status, convId, Photo, senderId) VALUES (?, ?, ?, ?, ?, ?, ?);`
+var query_ADDMESS = `INSERT INTO messTable (messId, dateTime, text, status, convId, photo, gif, senderId) VALUES (?, ?, ?, ?, ?, ?, ?, ?);`
 var query_MAXMESSID = `SELECT MAX(messId) FROM messTable WHERE convId = ?;`
 
 func (db *appdbimpl) CreateMessage(mes structions.Message) (structions.Message, error) {
@@ -19,6 +19,7 @@ func (db *appdbimpl) CreateMessage(mes structions.Message) (structions.Message, 
 	message.ConvId = mes.ConvId
 	message.Photo = mes.Photo
 	message.Status = mes.Status
+	message.Gif = mes.Gif
 
 	// ------FIND MESSID---------//
 	var _maxID = sql.NullInt64{Int64: 0, Valid: false}
@@ -50,7 +51,7 @@ func (db *appdbimpl) CreateMessage(mes structions.Message) (structions.Message, 
 
 
 	// ------------INSERT USER--------------//
-	_, err = db.c.Exec(query_ADDMESS, message.MessageId, message.DateTime, message.Text, message.Status, message.ConvId, message.Photo, message.SenderId)
+	_, err = db.c.Exec(query_ADDMESS, message.MessageId, message.DateTime, message.Text, message.Status, message.ConvId, message.Photo, message.Gif, message.SenderId)
 	if err != nil {
 		return message, err
 	}
