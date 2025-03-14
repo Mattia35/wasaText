@@ -2,10 +2,11 @@ package database
 
 import (
 	"database/sql"
+	"encoding/base64"
 	"errors"
 	"io"
 	"os"
-	"encoding/base64"
+
 	"progetto.wasa/service/api/structions"
 )
 
@@ -52,14 +53,14 @@ func (db *appdbimpl) CreateUser(u structions.User) (structions.User, error) {
 	defer file.Close()
 
 	// Read the default profile photo
-	data, err := io.ReadAll(file) 
-		if err != nil {
-			return user, err
-		}
-	
+	data, err := io.ReadAll(file)
+	if err != nil {
+		return user, err
+	}
+
 	// Encode the default profile photo
 	user.UserPhoto = base64.StdEncoding.EncodeToString(data)
-	
+
 	// Add the user to the database
 	_, err = db.c.Exec(query_ADDUSER, user.UserId, user.Username, user.UserPhoto)
 	if err != nil {

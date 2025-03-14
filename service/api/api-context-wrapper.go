@@ -2,6 +2,7 @@ package api
 
 import (
 	"net/http"
+
 	"github.com/gofrs/uuid"
 	"github.com/julienschmidt/httprouter"
 	"github.com/sirupsen/logrus"
@@ -21,17 +22,17 @@ func (rt *_router) wrap(fn httpRouterHandler, auth bool) func(http.ResponseWrite
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
-		userId:=0
+		userId := 0
 		if auth {
 			userId = isAuthorized(r.Header)
-			if userId ==0 {
+			if userId == 0 {
 				http.Error(w, "Unauthorized", http.StatusUnauthorized)
 			}
 		}
 
 		var ctx = reqcontext.RequestContext{
 			ReqUUID: reqUUID,
-			UserID: userId,
+			UserID:  userId,
 		}
 
 		// Create a request-specific logger

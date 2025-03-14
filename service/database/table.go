@@ -51,7 +51,7 @@ var checkMessTable = `CREATE TABLE IF NOT EXISTS checkMessTable (
 			ON DELETE CASCADE
 		FOREIGN KEY (userId) REFERENCES userTable (userId)
 			ON DELETE CASCADE
-);`   
+);`
 
 var usersGroupTable = `CREATE TABLE IF NOT EXISTS usersGroupTable (
 	groupId INTEGER NOT NULL,

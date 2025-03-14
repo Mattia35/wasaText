@@ -38,10 +38,11 @@ package api
 
 import (
 	"errors"
-	"progetto.wasa/service/database"
+	"net/http"
+
 	"github.com/julienschmidt/httprouter"
 	"github.com/sirupsen/logrus"
-	"net/http"
+	"progetto.wasa/service/database"
 )
 
 // Config is used to provide dependencies and configuration to the New function.

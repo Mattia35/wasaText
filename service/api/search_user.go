@@ -5,9 +5,11 @@ import (
 	"net/http"
 	"regexp"
 	"sort"
+
 	"github.com/julienschmidt/httprouter"
 	"progetto.wasa/service/api/reqcontext"
 )
+
 func (rt *_router) SearchUsers(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
 	// Get the search query
 	query := r.URL.Query().Get("query")

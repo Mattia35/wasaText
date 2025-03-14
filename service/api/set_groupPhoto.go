@@ -1,17 +1,17 @@
 package api
 
-
 import (
+	"bytes"
+	"encoding/base64"
 	"encoding/json"
+	"image/jpeg"
 	"io"
 	"net/http"
 	"strconv"
-	"encoding/base64"
+
 	"github.com/julienschmidt/httprouter"
-	"progetto.wasa/service/api/reqcontext"
-	"image/jpeg"
 	"github.com/nfnt/resize"
-	"bytes"
+	"progetto.wasa/service/api/reqcontext"
 )
 
 func (rt *_router) SetGroupPhoto(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {

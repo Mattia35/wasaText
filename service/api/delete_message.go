@@ -1,11 +1,12 @@
 package api
 
 import (
+	"encoding/json"
 	"net/http"
+	"strconv"
+
 	"github.com/julienschmidt/httprouter"
 	"progetto.wasa/service/api/reqcontext"
-	"strconv"
-	"encoding/json"
 )
 
 func (rt *_router) DeleteMessage(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
@@ -45,7 +46,7 @@ func (rt *_router) DeleteMessage(w http.ResponseWriter, r *http.Request, ps http
 	}
 
 	// Check if the user is the sender of the message
-	check, err := rt.db.CheckMessageSender(messId, UserId); 
+	check, err := rt.db.CheckMessageSender(messId, UserId)
 	if err != nil {
 		http.Error(w, "Internal Server Error"+err.Error(), http.StatusInternalServerError)
 		return
@@ -86,7 +87,7 @@ func (rt *_router) DeleteMessage(w http.ResponseWriter, r *http.Request, ps http
 	}
 
 	w.WriteHeader(http.StatusOK)
-	
+
 	// Send the response
 	w.Header().Set("content-type", "application/json")
 	if err := json.NewEncoder(w).Encode("message has been successfully deleted from conversation!"); err != nil {

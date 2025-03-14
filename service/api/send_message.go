@@ -48,7 +48,7 @@ func (rt *_router) SendMessage(w http.ResponseWriter, r *http.Request, ps httpro
 		http.Error(w, "Conversation not found"+err.Error(), http.StatusNotFound)
 		return
 	}
-	
+
 	var mess structions.Message
 
 	// Check the weight of the message
@@ -113,7 +113,7 @@ func (rt *_router) SendMessage(w http.ResponseWriter, r *http.Request, ps httpro
 		http.Error(w, "You can't send a gif with a text or an image", http.StatusBadRequest)
 		return
 	}
-	// Check if the request have a file, and if it has, encode it 
+	// Check if the request have a file, and if it has, encode it
 	if thereIsImage {
 		if _, err := file.Seek(0, io.SeekStart); err != nil {
 			http.Error(w, "Error seeking the image file"+err.Error(), http.StatusInternalServerError)
@@ -139,7 +139,7 @@ func (rt *_router) SendMessage(w http.ResponseWriter, r *http.Request, ps httpro
 		mess.Photo = base64.StdEncoding.EncodeToString(data)
 	}
 
-	// Check if the request have a gif, and if it has, encode it 
+	// Check if the request have a gif, and if it has, encode it
 	if thereIsGif {
 		if _, err := fileGif.Seek(0, io.SeekStart); err != nil {
 			http.Error(w, "Error seeking the gif file"+err.Error(), http.StatusInternalServerError)
@@ -172,11 +172,11 @@ func (rt *_router) SendMessage(w http.ResponseWriter, r *http.Request, ps httpro
 
 	// query message
 	type Response struct {
-		MessToreplyTo  structions.Message `json:"messToReplyTo"`
-		MessSended structions.Message `json:"messSended"`
+		MessToreplyTo structions.Message `json:"messToReplyTo"`
+		MessSended    structions.Message `json:"messSended"`
 	}
 	var response Response
-	
+
 	if messIdToReplyTo != 0 {
 		// Get the message by the id
 		MessToreplyTo, err := rt.db.GetMessageById(messIdToReplyTo, conv.ConvId)

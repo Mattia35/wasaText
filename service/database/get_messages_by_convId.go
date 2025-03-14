@@ -3,7 +3,9 @@ package database
 import (
 	"progetto.wasa/service/api/structions"
 )
+
 var query_GETMESSAGESBYCONVID = `SELECT messId, dateTime, IFNULL(text, ""), status, convId, IFNULL(photo, ""), IFNULL(gif, ""), senderId FROM messTable WHERE convId = ?`
+
 func (db *appdbimpl) GetMessagesByConvId(convId int) ([]structions.Message, error) {
 	rows, err := db.c.Query(query_GETMESSAGESBYCONVID, convId)
 	if err != nil {

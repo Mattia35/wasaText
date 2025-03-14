@@ -1,4 +1,5 @@
 package database
+
 import (
 	"progetto.wasa/service/api/structions"
 )
@@ -11,5 +12,5 @@ func (db *appdbimpl) UserControlByUsername(username string) (structions.User, er
 	if err != nil {
 		return user, err
 	}
-	return user,err
+	return user, err
 }

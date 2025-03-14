@@ -3,9 +3,10 @@ package api
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
+
 	"github.com/julienschmidt/httprouter"
 	"progetto.wasa/service/api/reqcontext"
-	"strconv"
 )
 
 func (rt *_router) LeaveGroup(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {

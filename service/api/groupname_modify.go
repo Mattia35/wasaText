@@ -4,12 +4,13 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
-	"progetto.wasa/service/api/reqcontext"
+
 	"github.com/julienschmidt/httprouter"
+	"progetto.wasa/service/api/reqcontext"
 	"progetto.wasa/service/api/structions"
 )
 
-func (rt *_router) GroupNameModify (w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
+func (rt *_router) GroupNameModify(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
 	// Check if the user request is valid
 	UserId, err := strconv.Atoi(ps.ByName("user"))
 	if err != nil {
@@ -39,12 +40,12 @@ func (rt *_router) GroupNameModify (w http.ResponseWriter, r *http.Request, ps h
 	}
 
 	// Check if the user could modify the groupname
-	check, err := rt.db.UserControlByGroup(UserId, GroupId); 
+	check, err := rt.db.UserControlByGroup(UserId, GroupId)
 	if err != nil {
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
-	
+
 	if !check {
 		http.Error(w, "User can't modify the groupname, because isn't in the group", http.StatusBadRequest)
 		return
@@ -69,7 +70,7 @@ func (rt *_router) GroupNameModify (w http.ResponseWriter, r *http.Request, ps h
 	}
 	group.GroupId = GroupId
 	// Try to modify the groupname. If it fails, it gives an error
-	if err := rt.db.GroupnameModify(GroupId, group.Username); err!= nil {
+	if err := rt.db.GroupnameModify(GroupId, group.Username); err != nil {
 		http.Error(w, "Groupname modify failed. Retry!", http.StatusBadRequest)
 		return
 	}

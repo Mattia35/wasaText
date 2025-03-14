@@ -9,6 +9,7 @@ var query_GETCONVERSATIONBYUSERS = `
 		  AND convuser.userId = ? 
 		  AND convus.userId = ?  
 		  AND c.groupId IS NULL;`
+
 func (db *appdbimpl) GetConversationByUsers(userId int, destId int) (int, error) {
 	var convId int
 	err := db.c.QueryRow(query_GETCONVERSATIONBYUSERS, userId, destId).Scan(&convId)

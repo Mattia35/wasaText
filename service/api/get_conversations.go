@@ -1,12 +1,14 @@
 package api
+
 import (
 	"encoding/json"
 	"net/http"
+	"sort"
+	"strconv"
+
 	"github.com/julienschmidt/httprouter"
 	"progetto.wasa/service/api/reqcontext"
-	"strconv"
 	"progetto.wasa/service/api/structions"
-	"sort"
 )
 
 func (rt *_router) GetConversations(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
@@ -32,18 +34,14 @@ func (rt *_router) GetConversations(w http.ResponseWriter, r *http.Request, ps h
 		return
 	}
 
-
-
-
-
 	// Struct used for the response
 	type ConvObject struct {
-		Conversation structions.Conversation 		`json:"conversation"`
-		User         structions.User                `json:"user"`
-		Group        structions.Group               `json:"group"`
-		GroupUsers   []structions.User              `json:"groupUsers"`
-		Message      structions.Message      		`json:"message"`
-		SenderUser   structions.User                `json:"senderUser"`
+		Conversation structions.Conversation `json:"conversation"`
+		User         structions.User         `json:"user"`
+		Group        structions.Group        `json:"group"`
+		GroupUsers   []structions.User       `json:"groupUsers"`
+		Message      structions.Message      `json:"message"`
+		SenderUser   structions.User         `json:"senderUser"`
 	}
 
 	// Response
@@ -133,5 +131,5 @@ func (rt *_router) GetConversations(w http.ResponseWriter, r *http.Request, ps h
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
-	
+
 }

@@ -3,6 +3,7 @@ package api
 import (
 	"encoding/json"
 	"net/http"
+
 	"github.com/julienschmidt/httprouter"
 	"progetto.wasa/service/api/reqcontext"
 	"progetto.wasa/service/api/structions"
@@ -57,7 +58,7 @@ func (rt *_router) doLogin(w http.ResponseWriter, r *http.Request, ps httprouter
 	// This struct contain the User object and the authorization token.
 	type UserAuthentication struct {
 		User  structions.User `json:"user"`
-		Token int  `json:"token"`
+		Token int             `json:"token"`
 	}
 
 	/*

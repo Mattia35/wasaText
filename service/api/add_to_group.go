@@ -1,8 +1,10 @@
 package api
+
 import (
 	"encoding/json"
 	"net/http"
 	"strconv"
+
 	"github.com/julienschmidt/httprouter"
 	"progetto.wasa/service/api/reqcontext"
 	"progetto.wasa/service/api/structions"
@@ -43,7 +45,7 @@ func (rt *_router) AddToGroup(w http.ResponseWriter, r *http.Request, ps httprou
 	}
 
 	type RequestBody struct {
-		Users     []structions.User `json:"users"`
+		Users []structions.User `json:"users"`
 	}
 	var request RequestBody
 
@@ -54,7 +56,7 @@ func (rt *_router) AddToGroup(w http.ResponseWriter, r *http.Request, ps httprou
 	}
 	// Add users to the group and conversation
 	for i := 0; i < len(request.Users); i++ {
-		user,err := rt.db.UserControlByUsername(request.Users[i].Username)
+		user, err := rt.db.UserControlByUsername(request.Users[i].Username)
 		if err != nil {
 			ctx.Logger.WithError(err).Error("you can't add a user to the group, because it doesn't exist")
 			w.WriteHeader(http.StatusBadRequest)

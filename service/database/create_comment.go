@@ -1,9 +1,12 @@
 package database
+
 import (
-	"progetto.wasa/service/api/structions"
 	"database/sql"
 	"errors"
+
+	"progetto.wasa/service/api/structions"
 )
+
 var query_ADDCOMMENT = `INSERT INTO commentTable (commId, messId, content, senderId, convId) VALUES (?, ?, ?, ?, ?);`
 var query_MAXCOMMID = `SELECT MAX(commId) FROM commentTable WHERE convId = ? AND messId = ?;`
 

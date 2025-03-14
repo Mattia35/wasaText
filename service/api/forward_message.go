@@ -1,17 +1,18 @@
 package api
 
 import (
+	"database/sql"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"strconv"
+
 	"github.com/julienschmidt/httprouter"
 	"progetto.wasa/service/api/reqcontext"
 	"progetto.wasa/service/api/structions"
-	"database/sql"
-	"errors"
 )
 
-func (rt *_router) ForwardMessage(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext){
+func (rt *_router) ForwardMessage(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
 	// Check if the user request is valid
 	UserId, err := strconv.Atoi(ps.ByName("user"))
 	if err != nil {
@@ -68,12 +69,12 @@ func (rt *_router) ForwardMessage(w http.ResponseWriter, r *http.Request, ps htt
 		check := false
 		for j := i + 1; j < len(request.DestConvId); j++ {
 			if request.DestConvId[i].DestGroup != 0 {
-				if request.DestConvId[i].DestGroup == request.DestConvId[j].DestGroup{
+				if request.DestConvId[i].DestGroup == request.DestConvId[j].DestGroup {
 					check = true
 					break
 				}
 			} else if request.DestConvId[i].DestUser != 0 {
-				if request.DestConvId[i].DestUser == request.DestConvId[j].DestUser{
+				if request.DestConvId[i].DestUser == request.DestConvId[j].DestUser {
 					check = true
 					break
 				}
@@ -89,12 +90,12 @@ func (rt *_router) ForwardMessage(w http.ResponseWriter, r *http.Request, ps htt
 	for i := 0; i < len(request.DestConvId); i++ {
 		check := false
 		for j := i + 1; j < len(requestToDelete.DestConvId); j++ {
-			if request.DestConvId[i].DestGroup != 0{
+			if request.DestConvId[i].DestGroup != 0 {
 				if request.DestConvId[i].DestGroup == requestToDelete.DestConvId[j].DestGroup {
 					check = true
 					break
 				}
-			} else if request.DestConvId[i].DestUser != 0{
+			} else if request.DestConvId[i].DestUser != 0 {
 				if request.DestConvId[i].DestUser != requestToDelete.DestConvId[j].DestUser {
 					check = true
 					break
@@ -106,14 +107,14 @@ func (rt *_router) ForwardMessage(w http.ResponseWriter, r *http.Request, ps htt
 		}
 	}
 	request = newRequest
-	Conver:=0;
+	Conver := 0
 	var messages []structions.Message
 
 	// For each destination, check if it is a group or a user
 	for i := 0; i < len(request.DestConvId); i++ {
 		if request.DestConvId[i].DestGroup != 0 {
 			// Get conv by group id
-			AllConv, err := rt.db.GetConvByGroupId(request.DestConvId[i].DestGroup )
+			AllConv, err := rt.db.GetConvByGroupId(request.DestConvId[i].DestGroup)
 			if err != nil {
 				http.Error(w, "Internal server error"+err.Error(), http.StatusInternalServerError)
 				return
@@ -125,7 +126,7 @@ func (rt *_router) ForwardMessage(w http.ResponseWriter, r *http.Request, ps htt
 				http.Error(w, "Internal server error"+err.Error(), http.StatusInternalServerError)
 				return
 			}
-			// If the conversation doesn't exist, return an error	
+			// If the conversation doesn't exist, return an error
 			if !check {
 				http.Error(w, "The group doesn't exist", http.StatusBadRequest)
 				return
@@ -210,7 +211,7 @@ func (rt *_router) ForwardMessage(w http.ResponseWriter, r *http.Request, ps htt
 			http.Error(w, "Error taking the users of the conversation"+err.Error(), http.StatusBadRequest)
 			return
 		}
-		
+
 		// Set the users that have read the message: all the users of the group, unless the sender
 		newUsers := make([]structions.User, 0)
 		for i := 0; i < len(users); i++ {
@@ -237,5 +238,5 @@ func (rt *_router) ForwardMessage(w http.ResponseWriter, r *http.Request, ps htt
 		http.Error(w, "Error encoding response"+err.Error(), http.StatusInternalServerError)
 		return
 	}
-	
+
 }

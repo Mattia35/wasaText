@@ -1,7 +1,7 @@
 package database
+
 import (
 	"progetto.wasa/service/api/structions"
-	
 )
 
 // get all comments of a message
@@ -17,7 +17,7 @@ func (db *appdbimpl) GetCommentsByMessId(messId int, convId int) ([]structions.C
 	var comments []structions.Comment
 	for rows.Next() {
 		var comment structions.Comment
-		err := rows.Scan(&comment.CommentId ,&comment.MessageId, &comment.Content, &comment.SenderId, &comment.ConvId)
+		err := rows.Scan(&comment.CommentId, &comment.MessageId, &comment.Content, &comment.SenderId, &comment.ConvId)
 		if err != nil {
 			return nil, err
 		}

@@ -10,6 +10,7 @@ import (
 	"progetto.wasa/service/api/reqcontext"
 	"progetto.wasa/service/api/structions"
 )
+
 func (rt *_router) GetConversation(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
 	// Check if the user request is valid
 	UserId, err := strconv.Atoi(ps.ByName("user"))
@@ -103,9 +104,9 @@ func (rt *_router) GetConversation(w http.ResponseWriter, r *http.Request, ps ht
 	}
 
 	type MessageData struct {
-		Message structions.Message `json:"message"`
-		Sender structions.User    `json:"sender"`
-		DateTime string           `json:"dateTime"`
+		Message  structions.Message   `json:"message"`
+		Sender   structions.User      `json:"sender"`
+		DateTime string               `json:"dateTime"`
 		Comments []structions.Comment `json:"comments"`
 	}
 

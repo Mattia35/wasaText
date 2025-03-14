@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
+
 	"github.com/julienschmidt/httprouter"
 	"progetto.wasa/service/api/reqcontext"
 	"progetto.wasa/service/api/structions"
@@ -27,7 +28,7 @@ func (rt *_router) CreateGroup(w http.ResponseWriter, r *http.Request, ps httpro
 
 	var group structions.Group
 	type RequestBody struct {
-		Groupname string `json:"groupname"`
+		Groupname string            `json:"groupname"`
 		Users     []structions.User `json:"users"`
 	}
 	var request RequestBody
@@ -69,7 +70,7 @@ func (rt *_router) CreateGroup(w http.ResponseWriter, r *http.Request, ps httpro
 	}
 	// Add users to the group and conversation
 	for i := 0; i < len(request.Users); i++ {
-		user,err := rt.db.UserControlByUsername(request.Users[i].Username)
+		user, err := rt.db.UserControlByUsername(request.Users[i].Username)
 		if err != nil {
 			ctx.Logger.WithError(err).Error("you can't add a user to the group, because it doesn't exist")
 			w.WriteHeader(http.StatusBadRequest)
@@ -99,9 +100,9 @@ func (rt *_router) CreateGroup(w http.ResponseWriter, r *http.Request, ps httpro
 	response.ConversationId = conversation.ConvId
 
 	message := structions.Message{
-		SenderId:    UserId,
-		ConvId:      conversation.ConvId,
-		Text:        "You are now part of the group " + group.Username,
+		SenderId: UserId,
+		ConvId:   conversation.ConvId,
+		Text:     "You are now part of the group " + group.Username,
 	}
 
 	// Create the welcome message
@@ -151,4 +152,3 @@ func (rt *_router) CreateGroup(w http.ResponseWriter, r *http.Request, ps httpro
 	}
 
 }
-

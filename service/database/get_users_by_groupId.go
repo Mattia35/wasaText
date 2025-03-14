@@ -3,8 +3,10 @@ package database
 import (
 	"progetto.wasa/service/api/structions"
 )
+
 var query_GETUSERSBYGROUPID = `SELECT userId FROM usersGroupTable WHERE groupId = ?;`
-func (db *appdbimpl) GetUsersByGroupId(groupId int) ([]structions.User, error){
+
+func (db *appdbimpl) GetUsersByGroupId(groupId int) ([]structions.User, error) {
 	var users []structions.User
 	rows, err := db.c.Query(query_GETUSERSBYGROUPID, groupId)
 	if err != nil {

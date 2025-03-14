@@ -1,7 +1,8 @@
 package database
 
 var query_ALLUSERSHAVEREADMESS = `SELECT userId FROM checkMessTable WHERE messId = ?;`
- func (db *appdbimpl) CheckAllUsersHaveReadMess(messId int) (bool, error) {
+
+func (db *appdbimpl) CheckAllUsersHaveReadMess(messId int) (bool, error) {
 	var userIds []int
 	rows, err := db.c.Query(query_ALLUSERSHAVEREADMESS, messId)
 	if err != nil {

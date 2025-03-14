@@ -1,12 +1,13 @@
 package api
 
 import (
+	"database/sql"
+	"encoding/json"
 	"net/http"
+	"strconv"
+
 	"github.com/julienschmidt/httprouter"
 	"progetto.wasa/service/api/reqcontext"
-	"strconv"
-	"encoding/json"
-	"database/sql"
 )
 
 func (rt *_router) UncommentMessage(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
@@ -94,7 +95,7 @@ func (rt *_router) UncommentMessage(w http.ResponseWriter, r *http.Request, ps h
 	}
 
 	w.WriteHeader(http.StatusOK)
-	
+
 	// Send the response
 	w.Header().Set("content-type", "application/json")
 	if err := json.NewEncoder(w).Encode("comment has been successfully deleted from list comments!"); err != nil {

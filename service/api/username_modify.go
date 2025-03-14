@@ -4,12 +4,13 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
-	"progetto.wasa/service/api/reqcontext"
+
 	"github.com/julienschmidt/httprouter"
+	"progetto.wasa/service/api/reqcontext"
 	"progetto.wasa/service/api/structions"
 )
 
-func (rt *_router) UsernameModify (w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
+func (rt *_router) UsernameModify(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
 	// Check if the user request is valid
 	UserId, err := strconv.Atoi(ps.ByName("user"))
 	if err != nil {
@@ -39,7 +40,7 @@ func (rt *_router) UsernameModify (w http.ResponseWriter, r *http.Request, ps ht
 	}
 	user.UserId = UserId
 	// Try to modify the username. If username is already taken, it gives an error
-	if err := rt.db.UsernameModify(userID, user.Username); err!= nil {
+	if err := rt.db.UsernameModify(userID, user.Username); err != nil {
 		http.Error(w, "Username already taken. Retry!", http.StatusBadRequest)
 		return
 	}

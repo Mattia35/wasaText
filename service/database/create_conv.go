@@ -23,7 +23,7 @@ func (db *appdbimpl) CreateConversation(conv structions.Conversation) (struction
 	}
 
 	var maxID int
-	for row.Next(){
+	for row.Next() {
 		if row.Err() != nil {
 			return conversation, err
 		}
@@ -47,7 +47,7 @@ func (db *appdbimpl) CreateConversation(conv structions.Conversation) (struction
 		if err != nil {
 			return conversation, err
 		}
-	} else{
+	} else {
 		_, err = db.c.Exec(query_ADDCONV, conversation.ConvId, conversation.GroupId)
 		if err != nil {
 			return conversation, err

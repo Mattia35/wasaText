@@ -44,16 +44,16 @@ type AppDatabase interface {
 	GetUserByName(username string) (structions.User, error)
 	GetGroupByGroupId(groupId int) (structions.Group, error)
 	CreateUser(u structions.User) (structions.User, error)
-	UsernameModify(userId int, username string) (error)
+	UsernameModify(userId int, username string) error
 	UserControlByGroup(userId int, groupId int) (bool, error)
-	GroupnameModify(groupId int, groupname string) (error)
+	GroupnameModify(groupId int, groupname string) error
 	CreateGroup(gr structions.Group, userId int) (structions.Group, error)
 	CreateConversation(conv structions.Conversation) (structions.Conversation, error)
 	UserControlByUsername(username string) (structions.User, error)
-	AddUserToConv(userId int, convId int) (error)
-	AddUserToGroup(userId int, groupId int) (error)
+	AddUserToConv(userId int, convId int) error
+	AddUserToGroup(userId int, groupId int) error
 	CreateMessage(mes structions.Message) (structions.Message, error)
-	AddMessageToConv(MessageId int, ConvId int) (error)
+	AddMessageToConv(MessageId int, ConvId int) error
 	GetUserById(userId int) (structions.User, error)
 	GetConvByUsers(userId int, destId int) (int, error)
 	GetConversationsByUserId(userId int) ([]structions.Conversation, error)
@@ -63,13 +63,13 @@ type AppDatabase interface {
 	GetUsersByGroupId(groupId int) ([]structions.User, error)
 	IsUserInGroup(userId int, groupId int) (bool, error)
 	IsUserInConv(userId int, convId int) (bool, error)
-	RemoveUserFromGroup(userId int, groupId int) (error)
+	RemoveUserFromGroup(userId int, groupId int) error
 	GetConvByGroupId(groupId int) (structions.Conversation, error)
-	RemoveUserFromConv(userId int, convId int) (error)
-	RemoveGroup(groupId int) (error)
-	RemoveConv(convId int) (error)
+	RemoveUserFromConv(userId int, convId int) error
+	RemoveGroup(groupId int) error
+	RemoveConv(convId int) error
 	GetMaxMessageId(convId int) (int, error)
-	RemoveMessage(convId int) (error)
+	RemoveMessage(convId int) error
 	CheckMessageSender(messId int, userId int) (bool, error)
 	GetMessagesByConvId(convId int) ([]structions.Message, error)
 	AddUserToListOfReadersOfMess(messId int, userId int, convId int) error
@@ -84,13 +84,13 @@ type AppDatabase interface {
 	UpdateComment(userId int, messId int, convId int, emoji string) error
 	IsCommentInConv(commId int, messId int, convId int) (bool, error)
 	GetCommentById(commId int, messId int, convId int) (structions.Comment, error)
-	RemoveComment(commId int, messId int, convId int) (error)
+	RemoveComment(commId int, messId int, convId int) error
 	SetGroupPhoto(groupId int, base64 string) error
 	SetUserPhoto(userId int, base64 string) error
 	SearchUsers(query string) ([]structions.User, error)
 	DoConversationExist(ConvId int) (bool, error)
 	GetConversationByUsers(userId int, destId int) (int, error)
-	Ping() (error)
+	Ping() error
 }
 
 type appdbimpl struct {

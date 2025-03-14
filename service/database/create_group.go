@@ -2,10 +2,11 @@ package database
 
 import (
 	"database/sql"
-	"errors"
 	"encoding/base64"
+	"errors"
 	"io"
 	"os"
+
 	"progetto.wasa/service/api/structions"
 )
 
@@ -26,11 +27,11 @@ func (db *appdbimpl) CreateGroup(gr structions.Group, userId int) (structions.Gr
 	}
 
 	var maxID int
-	for row.Next(){
+	for row.Next() {
 		if row.Err() != nil {
 			return group, err
 		}
-		
+
 		err = row.Scan(&_maxID)
 		if err != nil && !errors.Is(err, sql.ErrNoRows) {
 			return group, err
@@ -45,7 +46,6 @@ func (db *appdbimpl) CreateGroup(gr structions.Group, userId int) (structions.Gr
 	// --------SET GROUPID------------//
 	group.GroupId = maxID + 1
 
-
 	// Get the default profile photo
 	file, err := os.Open("./storage/default_profile_photo.jpg")
 	if err != nil {
@@ -54,11 +54,11 @@ func (db *appdbimpl) CreateGroup(gr structions.Group, userId int) (structions.Gr
 	defer file.Close()
 
 	// Read the default profile photo
-	data, err := io.ReadAll(file) 
-		if err != nil {
-			return group, err
-		}
-	
+	data, err := io.ReadAll(file)
+	if err != nil {
+		return group, err
+	}
+
 	// Encode the default profile photo
 	group.GroupPhoto = base64.StdEncoding.EncodeToString(data)
 

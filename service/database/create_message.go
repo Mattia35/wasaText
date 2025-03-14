@@ -49,7 +49,6 @@ func (db *appdbimpl) CreateMessage(mes structions.Message) (structions.Message, 
 	// --------SET USERID------------//
 	message.MessageId = maxID + 1
 
-
 	// ------------INSERT USER--------------//
 	_, err = db.c.Exec(query_ADDMESS, message.MessageId, message.DateTime, message.Text, message.Status, message.ConvId, message.Photo, message.Gif, message.SenderId)
 	if err != nil {

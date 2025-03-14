@@ -1,4 +1,5 @@
 package database
+
 import (
 	"database/sql"
 )
@@ -6,7 +7,7 @@ import (
 func (db *appdbimpl) IsUserInConv(userId int, convId int) (bool, error) {
 	var UserId int
 	err := db.c.QueryRow(queryGetUsersConv, convId, userId).Scan(&UserId)
-	if err != nil{
+	if err != nil {
 		if err == sql.ErrNoRows {
 			return false, nil
 		}

@@ -1,12 +1,15 @@
 package api
+
 import (
 	"encoding/json"
 	"net/http"
 	"strconv"
+
 	"github.com/julienschmidt/httprouter"
 	"progetto.wasa/service/api/reqcontext"
 	"progetto.wasa/service/api/structions"
 )
+
 func (rt *_router) CreateConv(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
 	// Check if the user request is valid
 	UserId, err := strconv.Atoi(ps.ByName("user"))
@@ -43,7 +46,7 @@ func (rt *_router) CreateConv(w http.ResponseWriter, r *http.Request, ps httprou
 		http.Error(w, "Bad Request"+err.Error(), http.StatusBadRequest)
 		return
 	}
-	
+
 	// Create the conversation
 	var conversation structions.Conversation
 	conversation.GroupId = 0
@@ -100,7 +103,7 @@ func (rt *_router) CreateConv(w http.ResponseWriter, r *http.Request, ps httprou
 		return
 	}
 	w.WriteHeader(http.StatusCreated)
-		// Response
+	// Response
 	w.Header().Set("content-type", "application/json")
 	if err := json.NewEncoder(w).Encode(conversation); err != nil {
 		ctx.Logger.WithError(err).Error("Error in encoding the conversation")

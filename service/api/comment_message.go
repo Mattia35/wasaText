@@ -4,10 +4,11 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
+	"unicode"
+
 	"github.com/julienschmidt/httprouter"
 	"progetto.wasa/service/api/reqcontext"
 	"progetto.wasa/service/api/structions"
-	"unicode"
 )
 
 func (rt *_router) CommentMessage(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
@@ -69,9 +70,9 @@ func (rt *_router) CommentMessage(w http.ResponseWriter, r *http.Request, ps htt
 		http.Error(w, "Bad Request"+err.Error(), http.StatusBadRequest)
 		return
 	}
-	
+
 	// Check if the string is an emoji
-	runes := []rune(request.Emoji) 
+	runes := []rune(request.Emoji)
 	if len(runes) != 1 {
 		http.Error(w, "The string has more than 1 character", http.StatusBadRequest)
 		return
@@ -90,7 +91,7 @@ func (rt *_router) CommentMessage(w http.ResponseWriter, r *http.Request, ps htt
 	comment.Content = request.Emoji
 
 	// Check if the user has already commented the message
-	check, err = rt.db.CheckIfUserHasAlreadyCommented(messId, UserId, convId);
+	check, err = rt.db.CheckIfUserHasAlreadyCommented(messId, UserId, convId)
 	if err != nil {
 		http.Error(w, "Internal server error"+err.Error(), http.StatusInternalServerError)
 		return
@@ -103,7 +104,7 @@ func (rt *_router) CommentMessage(w http.ResponseWriter, r *http.Request, ps htt
 			http.Error(w, "Error update the comment in the database"+err.Error(), http.StatusBadRequest)
 			return
 		}
-	} else{
+	} else {
 		// Insert the comment in the db
 		comment, err = rt.db.CreateComment(comment)
 		if err != nil {
@@ -113,7 +114,7 @@ func (rt *_router) CommentMessage(w http.ResponseWriter, r *http.Request, ps htt
 	}
 
 	type Response struct {
-		NewComment  structions.Comment `json:"newComment"`
+		NewComment structions.Comment `json:"newComment"`
 	}
 	var response Response
 	response.NewComment = comment

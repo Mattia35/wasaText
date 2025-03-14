@@ -1,5 +1,7 @@
 package database
+
 import "progetto.wasa/service/api/structions"
+
 // Query used to get user of a conversation
 var queryGetUsersConv = `SELECT userId FROM usersConvTable WHERE convId = ? AND userId != ?`
 
