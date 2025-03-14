@@ -68,10 +68,11 @@ content-type: application/json
 
 # CREATE CONVERSATION #
 
-PUT http://localhost:3000/users/2/conversations/3  HTTP/1.1
+PUT http://localhost:3000/users/2/conversations  HTTP/1.1
 Authorization: 2
 
-{
+{   
+    "user" : "ciuccia",
     "text" : "sesso dybaliano"
 }
 

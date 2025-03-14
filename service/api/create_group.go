@@ -62,12 +62,15 @@ func (rt *_router) CreateGroup(w http.ResponseWriter, r *http.Request, ps httpro
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+
+	// Add the user who is creating the group to the group and conversation
 	err = rt.db.AddUserToConv(UserId, conversation.ConvId)
 	if err != nil {
 		ctx.Logger.WithError(err).Error("you can't add a user to the group")
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+
 	// Add users to the group and conversation
 	for i := 0; i < len(request.Users); i++ {
 		user, err := rt.db.UserControlByUsername(request.Users[i].Username)
@@ -127,6 +130,7 @@ func (rt *_router) CreateGroup(w http.ResponseWriter, r *http.Request, ps httpro
 		http.Error(w, "Error taking the users of the group"+err.Error(), http.StatusBadRequest)
 		return
 	}
+
 	// Set the users that have read the message: all the users of the group, unless the sender
 	newUsers := make([]structions.User, 0)
 	for i := 0; i < len(users); i++ {
@@ -134,6 +138,8 @@ func (rt *_router) CreateGroup(w http.ResponseWriter, r *http.Request, ps httpro
 			newUsers = append(newUsers, users[i])
 		}
 	}
+
+	// Add the users to the list of readers of the message
 	users = newUsers
 	for i := 0; i < len(users); i++ {
 		err = rt.db.AddUserToListOfReadersOfMess(message.MessageId, users[i].UserId, conversation.ConvId)

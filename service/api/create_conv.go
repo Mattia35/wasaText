@@ -26,17 +26,33 @@ func (rt *_router) CreateConv(w http.ResponseWriter, r *http.Request, ps httprou
 		return
 	}
 
-	// Check if the destination user request is valid
-	DestId, err := strconv.Atoi(ps.ByName("conv_id"))
+	type RequestBody struct {
+		User string `json:"user"`
+		Text string `json:"text"`
+	}
+	var request RequestBody
+
+	// Take the message to sent from the Request
+	var message structions.Message
+	err = json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
 		http.Error(w, "Bad Request"+err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	// Check if the destination user exists
-	_, err = rt.db.GetUserById(DestId)
+	Dest, err := rt.db.GetUserByName(request.User)
 	if err != nil {
 		http.Error(w, "Bad Request"+err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	// Get the destination user id
+	DestId := Dest.UserId
+
+	// Check if the text in the request is empty
+	if request.Text == "" {
+		http.Error(w, "Bad Request", http.StatusBadRequest)
 		return
 	}
 
@@ -56,17 +72,7 @@ func (rt *_router) CreateConv(w http.ResponseWriter, r *http.Request, ps httprou
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	type RequestBody struct {
-		Text string `json:"text"`
-	}
-	var request RequestBody
-	// Take the message to sent from the Request
-	var message structions.Message
-	err = json.NewDecoder(r.Body).Decode(&request)
-	if err != nil {
-		http.Error(w, "Bad Request"+err.Error(), http.StatusBadRequest)
-		return
-	}
+
 	message.Text = request.Text
 	message.SenderId = UserId
 	message.Status = false
@@ -102,6 +108,14 @@ func (rt *_router) CreateConv(w http.ResponseWriter, r *http.Request, ps httprou
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+
+	// Add the destination user to the list of readers of the message
+	err = rt.db.AddUserToListOfReadersOfMess(message.MessageId, DestId, conversation.ConvId)
+	if err != nil {
+		http.Error(w, "Error adding the user to the list of readers of the message"+err.Error(), http.StatusBadRequest)
+		return
+	}
+
 	w.WriteHeader(http.StatusCreated)
 	// Response
 	w.Header().Set("content-type", "application/json")
