@@ -3,6 +3,7 @@ package api
 import (
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"strconv"
 
@@ -73,7 +74,7 @@ func (rt *_router) UncommentMessage(w http.ResponseWriter, r *http.Request, ps h
 	// Get the comment
 	comm, err := rt.db.GetCommentById(commId, messId, convId)
 	if err != nil {
-		if err == sql.ErrNoRows {
+		if errors.Is(err, sql.ErrNoRows) {
 			http.Error(w, "Comment not found", http.StatusNotFound)
 			return
 		}

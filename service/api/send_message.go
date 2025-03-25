@@ -3,7 +3,6 @@ package api
 import (
 	"encoding/base64"
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 	"strconv"
@@ -155,7 +154,6 @@ func (rt *_router) SendMessage(w http.ResponseWriter, r *http.Request, ps httpro
 		// Check if the file is a gif
 		fileType := http.DetectContentType(dataGif)
 		if fileType != "image/gif" {
-			fmt.Println(fileType)
 			http.Error(w, "Bad Request, wrong file type", http.StatusBadRequest)
 			return
 		}

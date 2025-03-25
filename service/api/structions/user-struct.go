@@ -1,14 +1,14 @@
 package structions
 
-import(
+import (
 	"regexp"
 )
 
 type User struct {
-	UserId int `json:"userId"`
-	Username string `json:"username"`
+	UserId    int    `json:"userId"`
+	Username  string `json:"username"`
 	UserPhoto string `json:"userPhoto"`
-} 
+}
 
 func (user *User) IsValid() bool {
 	username := user.Username

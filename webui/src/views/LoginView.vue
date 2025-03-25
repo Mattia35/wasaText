@@ -9,29 +9,28 @@ export default {
       errorMsg: "",
 
       // Verifica per il campo username
-      usernameValidation: new RegExp('^\\w{3,16}$'),
+      usernameValidation: new RegExp('^[a-z0-9]{1,15}$'),
     }
   },
-  emits: ['login-success'],
+  emits: ['login-success', 'to-home'],
   methods: {
     // Funzione per effettuare il login
     async doLogin() {
       try {
         // Controlla che l'username sia valido
-        if (this.username.length < 3 || this.username.length > 16) throw "Invalid username, it must contains min 3 characters and max 16 characters"
+        if (this.username.length < 1 || this.username.length > 15) throw "Invalid username, it must contains min 1 character and max 15 characters"
         if (!this.usernameValidation.test(this.username)) throw "Invalid username, it must contain only letters and numbers"
 
-        // Effettua la richietsa di login al server con l'username inserito (se l'username non esiste, verrà creato un nuovo utente)
+        // Effettua la richiesta di login al server con l'username inserito (se l'username non esiste, verrà creato un nuovo utente)
         let response = await this.$axios.post('/session', {
           username: this.username,
         });
 
         // Salva i dati dell'utente nella sessionStorage
-        sessionStorage.userID = response.data.userId;
-        sessionStorage.username = response.data.username;
-        sessionStorage.token = response.data.userId;
-        sessionStorage.photo = response.data.photo;
-
+        sessionStorage.userID = response.data.user.userId;
+        sessionStorage.username = response.data.user.username;
+        sessionStorage.token = response.data.user.userId;
+        sessionStorage.photo = response.data.user.userPhoto;
         // Reindirizza l'utente alla home
         this.$router.push("/home");
         // Emette l'evento di login avvenuto con successo

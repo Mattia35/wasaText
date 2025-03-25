@@ -1,14 +1,12 @@
 package structions
 
-import(
+import (
 	"regexp"
 )
 
-
-
 type Group struct {
-	GroupId int `json:"groupId"`
-	Username string `json:"username"`
+	GroupId    int    `json:"groupId"`
+	Username   string `json:"username"`
 	GroupPhoto string `json:"groupPhoto"`
 }
 
