@@ -11,7 +11,14 @@ export default {
 			photo : "",
 		};
 	},
-	emits: ['login-success', 'to-home'],
+	emits: ['login-success', 
+			'to-home', 
+			'update-username', 
+			'close', 
+			'update-photo', 
+			'update-groupname', 
+			'update-group-photo',
+			'update-group-members'],
 	methods:{
 
 		handleHomeView() {
@@ -34,7 +41,16 @@ export default {
 		goToUserInfo(){
 			this.showUserInfo = false;
 			this.$router.push("/user-info");
+		},
+
+		handleUpdateUsername(){
+			this.username = sessionStorage.username;
+		},
+
+		handleUpdateUserPhoto(){
+			this.photo = sessionStorage.photo;
 		}
+
 	},
 	mounted(){
 	}
@@ -44,7 +60,6 @@ export default {
 <template>
 
 	<header class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-0 shadow">
-		<a class="navbar-brand col-md-3 col-lg-2 me-0 px-3 fs-6" href="#/">Example App</a>
 		<button class="navbar-toggler position-absolute d-md-none collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu" aria-controls="sidebarMenu" aria-expanded="false" aria-label="Toggle navigation">
 			<span class="navbar-toggler-icon"></span>
 		</button>
@@ -91,9 +106,8 @@ export default {
 					</ul>
 				</div>
 			</nav>
-
 			<main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
-				<RouterView @login-success="handleLoginSuccess" @to-home="handleHomeView"/>
+				<RouterView @login-success="handleLoginSuccess" @to-home="handleHomeView" @update-username="handleUpdateUsername" @update-photo="handleUpdateUserPhoto"/>
 			</main>
 		</div>
 
@@ -127,6 +141,7 @@ export default {
 	height: 80px;
 	border-radius: 50%;
 	object-fit: cover;
+	border: 5px solid #007bff;
 }
 
 .user-info button {

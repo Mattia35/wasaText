@@ -79,8 +79,8 @@ Authorization: 2
 ###
 
 # GET CONVERSATIONS #
-GET http://localhost:3000/users/2/conversations  HTTP/1.1
-Authorization: 2
+GET http://localhost:3000/users/1/conversations  HTTP/1.1
+Authorization: 1
 
 ### 
 
@@ -142,7 +142,7 @@ content-type: application/json
 ###
 
 # GET CONVERSATION #
-GET http://localhost:3000/users/1/conversations/1  HTTP/1.1
+GET http://localhost:3000/users/1/conversations/4  HTTP/1.1
 Authorization: 1
 
 ### 

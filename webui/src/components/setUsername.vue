@@ -7,9 +7,16 @@ export default {
         return {
             usernameValidation: new RegExp('^[a-z0-9]{1,15}$'),
             username: "",
+            errorMsg: "",
         }
     },
-    emits: ['to-home', 'login-success', 'update-username'],
+    emits: ['to-home', 
+            'login-success', 
+            'update-username', 
+            'close', 
+            'update-photo', 
+            'update-groupname', 
+            'update-group-photo'],
     methods: {
         closeModal() {
             this.$emit('close');
@@ -28,29 +35,33 @@ export default {
                 // Salva i dati dell'utente nella sessionStorage
                 sessionStorage.username = response.data.username;
 
-                // Chiudi il modale
-                this.closeModal();
-
                 // Emette l'evento di login avvenuto con successo
                 this.$emit('update-username');
+
+                // Chiudi il modale
+                this.closeModal();
             } catch (e) {
                 this.errorMsg = e.toString();
                 document.getElementsByTagName("input")[0].style.outline = "auto";
                 document.getElementsByTagName("input")[0].style.outlineColor = "red";
             };
-
         }
-}
+    }
 }</script>
 
 <template>
     <div v-if="show" class="modal-mask" >
         <div class="modal-wrapper">
             <div class="modal-container">
+                <button class="exit-button" @click="closeModal">X</button>
                 <div class="modal-header">
-                    <h3>Set new Username</h3>
-                    <button @click="closeModal">X</button>
+                    <form @submit.prevent="setNewUsername">
+                        <h3>Set new username</h3>
+                        <input type="text" v-model="username" placeholder="Enter your new username" />
+                        <button type="submit">confirm</button>
+                    </form>
                 </div>
+                <ErrorMsg v-if="errorMsg" :msg="errorMsg"></ErrorMsg>
             </div>
         </div>        
     </div>
@@ -58,34 +69,70 @@ export default {
 
 <style>
     .modal-mask {
-    position: fixed;
-    z-index: 9998;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    display: table;
-    transition: opacity 0.3s ease;
+        position: fixed;
+        z-index: 9998;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        display: table;
+        transition: opacity 0.3s ease;
     }
     .modal-wrapper {
-    display: table-cell;
-    vertical-align: middle;
+        display: table-cell;
+        vertical-align: middle;
+        margin-left: 280px;
     }
     .modal-container {
-    width: 300px;
-    margin: 0px auto;
-    padding: 20px;
-    background-color: white;
-    border-radius: 10px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.33);
-    transition: all 0.3s ease;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 600px;
+        margin: 0px auto;
+        padding: 20px;
+        background-color: white;
+        border-radius: 10px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.33);
+        transition: all 0.3s ease;
     }
+
     .modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
     }
-    
+
+    .modal-header form {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+    }
+    .modal-header input {
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+    }
+
+    .modal-header button {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        background-color: #007bff;
+        color: white;
+        cursor: pointer;
+    }
+    .exit-button {
+        position: absolute;
+        top: 5%;
+        right: 1.7%;
+        padding: 5px 10px;
+        border: none;
+        border-radius: 50%;
+        background-color: #ff0000;
+        color: white;
+        cursor: pointer;
+    }
 </style>

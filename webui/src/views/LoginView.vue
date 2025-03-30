@@ -12,7 +12,14 @@ export default {
       usernameValidation: new RegExp('^[a-z0-9]{1,15}$'),
     }
   },
-  emits: ['login-success', 'to-home'],
+  emits: ['login-success', 
+          'to-home', 
+          'update-username', 
+          'close', 
+          'update-photo', 
+          'update-groupname', 
+          'update-group-photo',
+          'update-group-members'],
   methods: {
     // Funzione per effettuare il login
     async doLogin() {

@@ -42,6 +42,7 @@ func (rt *_router) GetConversations(w http.ResponseWriter, r *http.Request, ps h
 		GroupUsers   []structions.User       `json:"groupUsers"`
 		Message      structions.Message      `json:"message"`
 		SenderUser   structions.User         `json:"senderUser"`
+		DateTime     string                  `json:"dateTime"`
 	}
 
 	// Response
@@ -76,11 +77,15 @@ func (rt *_router) GetConversations(w http.ResponseWriter, r *http.Request, ps h
 				return
 			}
 
+			// Get the dateTime of the last message
+			dateTime := message.DateTime.Format("15:04 - 02/01/2006")
+
 			response[idx] = ConvObject{
 				Conversation: conv,
 				User:         user,
 				Message:      message,
 				SenderUser:   senderUser,
+				DateTime:     dateTime,
 			}
 		} else {
 			// Get the group from the conversation
@@ -96,6 +101,10 @@ func (rt *_router) GetConversations(w http.ResponseWriter, r *http.Request, ps h
 				http.Error(w, "Bad Request"+err.Error(), http.StatusBadRequest)
 				return
 			}
+
+			// Get the dateTime of the last message
+			dateTime := message.DateTime.Format("15:04 - 02/01/2006")
+
 			// Get the sender of the last message
 			senderUser, err := rt.db.GetUserById(message.SenderId)
 			if err != nil {
@@ -109,12 +118,21 @@ func (rt *_router) GetConversations(w http.ResponseWriter, r *http.Request, ps h
 				return
 			}
 
+			// Delete yourself from the list of users
+			for i, user := range users {
+				if user.UserId == UserId {
+					users = append(users[:i], users[i+1:]...)
+					break
+				}
+			}
+
 			response[idx] = ConvObject{
 				Conversation: conv,
 				Group:        group,
 				GroupUsers:   users,
 				Message:      message,
 				SenderUser:   senderUser,
+				DateTime:     dateTime,
 			}
 		}
 	}

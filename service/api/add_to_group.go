@@ -95,11 +95,28 @@ func (rt *_router) AddToGroup(w http.ResponseWriter, r *http.Request, ps httprou
 			return
 		}
 	}
+
+	// Response (users of the group)
+	membersList, err := rt.db.GetUsersByGroupId(groupId)
+	if err != nil {
+		http.Error(w, "Bad Request"+err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	// Delete the user from the members list
+	for i := 0; i < len(membersList); i++ {
+		if membersList[i].UserId == UserId {
+			membersList = append(membersList[:i], membersList[i+1:]...)
+			break
+		}
+	}
+
 	// users has been added to group, response 200
 	w.WriteHeader(http.StatusOK)
-	w.Header().Set("content-type", "application/json")
-	if err := json.NewEncoder(w).Encode("users has been successfully added to group!"); err != nil {
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
+	w.Header().Set("Content-Type", "application/json")
+	if err = json.NewEncoder(w).Encode(membersList); err != nil {
+		ctx.Logger.WithError(err).Error("Error encoding response")
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 }
