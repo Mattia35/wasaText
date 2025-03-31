@@ -56,8 +56,6 @@ export default {
                 this.$emit('update-group-members');
             } catch (e) {
                 this.errorMsg = e.toString();
-                document.getElementsByTagName("input")[0].style.outline = "auto";
-                document.getElementsByTagName("input")[0].style.outlineColor = "red";
             };
 		},
 
@@ -80,8 +78,6 @@ export default {
 					this.filteredUsers = response.data;
 				} catch (e) {
 					this.errorMsg = e.toString();
-					document.getElementsByTagName("input")[0].style.outline = "auto";
-                	document.getElementsByTagName("input")[0].style.outlineColor = "red";
 					this.filteredUsers = [];
 				}
 			}
@@ -117,8 +113,6 @@ export default {
                 this.$router.push("/home");
             } catch (e) {
                 this.errorMsg = e.toString();
-                document.getElementsByTagName("input")[0].style.outline = "auto";
-                document.getElementsByTagName("input")[0].style.outlineColor = "red";
             };
         },
         handleFileChange(event) {
@@ -155,8 +149,6 @@ export default {
             this.$emit('update-group-photo');
             } catch (e) {
                 this.errorMsg = e.toString();
-                document.getElementsByTagName("input")[0].style.outline = "auto";
-                document.getElementsByTagName("input")[0].style.outlineColor = "red";
             };
         },
 
@@ -177,8 +169,6 @@ export default {
                 this.changeGroupName();
             } catch (e) {
                 this.errorMsg = e.toString();
-                document.getElementsByTagName("input")[0].style.outline = "auto";
-                document.getElementsByTagName("input")[0].style.outlineColor = "red";
             };
         },
         mounted() {

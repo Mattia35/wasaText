@@ -47,7 +47,18 @@ export default {
 		}
 	},
     methods: {
-        ForwardMessage() {
+        async deleteMessage() {
+            this.errorMsg = "";
+            try {
+                this.$axios.delete(`/users/${sessionStorage.userID}/conversations/${sessionStorage.convId}/messages/${this.messId}`, { headers: { 'Authorization': `${sessionStorage.token}`} });
+                this.option = false;
+                this.getMessages();
+            } catch (e) {
+                this.errorMsg = e.toString();
+            }
+        },
+
+        async ForwardMessage() {
             this.errorMsg2 = "";
             if (this.conversationsSelected.length === 0 && this.selectedUsers.length === 0) {
                 this.errorMsg2 = "You must select at least one conversation or user!";
@@ -94,8 +105,6 @@ export default {
                 this.option = false;
             } catch (e) {
                 this.errorMsg = e.toString();
-                document.getElementsByTagName("input")[0].style.outline = "auto";
-                document.getElementsByTagName("input")[0].style.outlineColor = "red";
             };
         },
         selectConversation(conversation) {
@@ -139,8 +148,6 @@ export default {
 					this.filteredUsers = response.data;
 				} catch (e) {
 					this.errorMsg2 = e.toString();
-					document.getElementsByTagName("input")[0].style.outline = "auto";
-                	document.getElementsByTagName("input")[0].style.outlineColor = "red";
 					this.filteredUsers = [];
 				}
 			}
@@ -211,8 +218,6 @@ export default {
 				this.messages = response.data;
 			} catch (e) {
 				this.errorMsg = e.toString();
-				document.getElementsByTagName("input")[0].style.outline = "auto";
-                document.getElementsByTagName("input")[0].style.outlineColor = "red";
 			}
         },
         async sendMessage() {
@@ -239,8 +244,6 @@ export default {
                 this.getMessages();
             } catch (e) {
                 this.errorMsg = e.toString();
-                document.getElementsByTagName("input")[0].style.outline = "auto";
-                document.getElementsByTagName("input")[0].style.outlineColor = "red";
             }
         },
         groupInfo() {
@@ -252,12 +255,10 @@ export default {
         },
         showOption(object) {
             this.messId = object.message.messageId;
-            console.log(this.messId);
             this.option = !this.option;
         },
 
         showOption2() {
-            console.log("ciao");
             this.option = !this.option;
         },
         showForward() {
@@ -280,8 +281,6 @@ export default {
 
 			} catch (e) {
 				this.errorMsg = e.toString();
-				document.getElementsByTagName("input")[0].style.outline = "auto";
-                document.getElementsByTagName("input")[0].style.outlineColor = "red";
 			}
 		}
     },
@@ -406,6 +405,8 @@ export default {
 			<button type="button" class="option-button" @click="showForward">Forward it</button>
 			<!-- Button to comment/uncomment message -->
 			<button type="button" class="option-button" >Comment or uncomment it</button>
+            <!-- Button to delete message -->
+			<button type="button" class="option-button" @click="deleteMessage">Delete it</button>
 		</div>
 	</div>
 
@@ -667,7 +668,7 @@ export default {
 .message-option-container {
     position: fixed;
     width: 300px;
-    height: 120px;
+    height: 160px;
     background-color: #f9f9f9;
     display: flex;
     flex-direction: column;

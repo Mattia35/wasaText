@@ -78,8 +78,6 @@ export default {
 				this.conversations = response.data;
 			} catch (e) {
 				this.errorMsg = e.toString();
-				document.getElementsByTagName("input")[0].style.outline = "auto";
-                document.getElementsByTagName("input")[0].style.outlineColor = "red";
 			}
 		},
 		async filterUsers() {
@@ -101,8 +99,6 @@ export default {
 					this.filteredUsers = response.data;
 				} catch (e) {
 					this.errorMsg2 = e.toString();
-					document.getElementsByTagName("input")[0].style.outline = "auto";
-                	document.getElementsByTagName("input")[0].style.outlineColor = "red";
 					this.filteredUsers = [];
 				}
 			}
@@ -161,8 +157,6 @@ export default {
 
             } catch (e) {
                 this.errorMsg2 = e.toString();
-                document.getElementsByTagName("input")[0].style.outline = "auto";
-                document.getElementsByTagName("input")[0].style.outlineColor = "red";
             };
 		},
 
@@ -211,7 +205,7 @@ export default {
 					<div class="conversation-name-and-last-message">
 						<p class="conversation-name" v-if="conversation.conversation.group != 0">{{ conversation.group.username }}</p>
 						<p class="conversation-name" v-if="conversation.conversation.group == 0">{{ conversation.user.username }}</p>
-						<p v-if="conversation.message.photo" class="last-message">
+						<p v-if="conversation.message.photo && conversation.message.messageId != 0" class="last-message">
 							<p v-if="conversation.senderUser.username === username" class="sender-last-message"><strong>me: </strong></p>
 							<p v-if="conversation.senderUser.username !== username" class="sender-last-message"><strong>{{ conversation.senderUser.username }}: </strong></p>
 						
@@ -220,10 +214,10 @@ export default {
 							</svg>
 							image
 						</p>
-						<p v-else-if="conversation.message.text && conversation.senderUser.username === username" class="last-message"><strong>me: </strong>{{ conversation.message.text }}</p>
-						<p v-else-if="conversation.message.text && conversation.senderUser.username !== username" class="last-message"><strong>{{ conversation.senderUser.username }}: </strong>{{ conversation.message.text }}</p>
-						<p v-else class="last-message">
-							<p v-if="conversation.senderUser.username === username" class="sender-last-message"><strong>me: </strong></p>
+						<p v-else-if="conversation.message.text && conversation.senderUser.username === username && conversation.message.messageId != 0" class="last-message"><strong>me: </strong>{{ conversation.message.text }}</p>
+						<p v-else-if="conversation.message.text && conversation.senderUser.username !== username && conversation.message.messageId != 0" class="last-message"><strong>{{ conversation.senderUser.username }}: </strong>{{ conversation.message.text }}</p>
+						<p v-else-if="conversation.message.messageId != 0" class="last-message">
+							<p v-if="conversation.senderUser.username === username" class="sender-last-message "><strong>me: </strong></p>
 							<p v-if="conversation.senderUser.username !== username" class="sender-last-message"><strong>{{ conversation.senderUser.username }}: </strong></p>
 							<svg class="feather"> 
 								<use href="/feather-sprite-v4.29.0.svg#image" />
@@ -232,7 +226,7 @@ export default {
 						</p>
 					</div>
 				</div>
-				<p class="conversation-datetime">{{ conversation.dateTime }}</p>
+				<p v-if="conversation.message.messageId != 0" class="conversation-datetime">{{ conversation.dateTime }}</p>
 			</li>
 		</ul>
 	</div>

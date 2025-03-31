@@ -64,21 +64,25 @@ func (rt *_router) GetConversations(w http.ResponseWriter, r *http.Request, ps h
 				return
 			}
 
-			// Get last message
-			message, err := rt.db.GetMessageById(conv.LastMessage, conv.ConvId)
-			if err != nil {
-				http.Error(w, "Bad Request"+err.Error(), http.StatusBadRequest)
-				return
+			message := structions.Message{}
+			dateTime := ""
+			senderUser := structions.User{}
+			if conv.LastMessage != 0 {
+				// Get last message
+				message, err = rt.db.GetMessageById(conv.LastMessage, conv.ConvId)
+				if err != nil {
+					http.Error(w, "Bad Request"+err.Error(), http.StatusBadRequest)
+					return
+				}
+				// Get the dateTime of the last message
+				dateTime = message.DateTime.Format("15:04 - 02/01/2006")
+				// Get the sender of the last message
+				senderUser, err = rt.db.GetUserById(message.SenderId)
+				if err != nil {
+					http.Error(w, "Bad Request"+err.Error(), http.StatusBadRequest)
+					return
+				}
 			}
-			// Get the sender of the last message
-			senderUser, err := rt.db.GetUserById(message.SenderId)
-			if err != nil {
-				http.Error(w, "Bad Request"+err.Error(), http.StatusBadRequest)
-				return
-			}
-
-			// Get the dateTime of the last message
-			dateTime := message.DateTime.Format("15:04 - 02/01/2006")
 
 			response[idx] = ConvObject{
 				Conversation: conv,
@@ -94,22 +98,24 @@ func (rt *_router) GetConversations(w http.ResponseWriter, r *http.Request, ps h
 				http.Error(w, "Bad Request"+err.Error(), http.StatusBadRequest)
 				return
 			}
-
-			// Get last message
-			message, err := rt.db.GetMessageById(conv.LastMessage, conv.ConvId)
-			if err != nil {
-				http.Error(w, "Bad Request"+err.Error(), http.StatusBadRequest)
-				return
-			}
-
-			// Get the dateTime of the last message
-			dateTime := message.DateTime.Format("15:04 - 02/01/2006")
-
-			// Get the sender of the last message
-			senderUser, err := rt.db.GetUserById(message.SenderId)
-			if err != nil {
-				http.Error(w, "Bad Request"+err.Error(), http.StatusBadRequest)
-				return
+			message := structions.Message{}
+			dateTime := ""
+			senderUser := structions.User{}
+			if conv.LastMessage != 0 {
+				// Get last message
+				message, err = rt.db.GetMessageById(conv.LastMessage, conv.ConvId)
+				if err != nil {
+					http.Error(w, "Bad Request"+err.Error(), http.StatusBadRequest)
+					return
+				}
+				// Get the dateTime of the last message
+				dateTime = message.DateTime.Format("15:04 - 02/01/2006")
+				// Get the sender of the last message
+				senderUser, err = rt.db.GetUserById(message.SenderId)
+				if err != nil {
+					http.Error(w, "Bad Request"+err.Error(), http.StatusBadRequest)
+					return
+				}
 			}
 			// Get the users of the group
 			users, err := rt.db.GetUsersByGroupId(conv.GroupId)
@@ -117,7 +123,6 @@ func (rt *_router) GetConversations(w http.ResponseWriter, r *http.Request, ps h
 				http.Error(w, "Bad Request"+err.Error(), http.StatusBadRequest)
 				return
 			}
-
 			// Delete yourself from the list of users
 			for i, user := range users {
 				if user.UserId == UserId {

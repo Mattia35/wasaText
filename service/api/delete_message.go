@@ -63,7 +63,7 @@ func (rt *_router) DeleteMessage(w http.ResponseWriter, r *http.Request, ps http
 	}
 
 	// Remove the message
-	err = rt.db.RemoveMessage(messId)
+	err = rt.db.RemoveMessage(messId, convId)
 	if err != nil {
 		http.Error(w, "Internal Server Error"+err.Error(), http.StatusInternalServerError)
 		return

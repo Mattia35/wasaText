@@ -60,8 +60,6 @@ export default {
           
         } catch (e) {
             this.errorMsg = e.toString();
-            document.getElementsByTagName("input")[0].style.outline = "auto";
-            document.getElementsByTagName("input")[0].style.outlineColor = "red";
         };
       },
 
