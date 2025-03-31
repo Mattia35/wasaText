@@ -2,6 +2,8 @@
 export default {
     props: {
         show1: Boolean,
+        members: Array,
+        membersQuantity: Number,
     },
     data: function() {
         return {
@@ -9,8 +11,6 @@ export default {
             errorMsg: "",
             nameOfGroup: sessionStorage.recipientName,
             photo: sessionStorage.recipientPhoto,
-            members: JSON.parse(sessionStorage.membersOfGroup),
-            membersQuantity: JSON.parse(sessionStorage.membersOfGroup).length + 1,
             userPhoto: sessionStorage.photo,
             showInputChangeGroupname: false,
             showInputAddUsersToGroup: false,
@@ -68,8 +68,6 @@ export default {
 			if (this.searchText.length > 0) {
 				if (this.searchText.length > 15 || !this.usernameValidation.test(this.searchText)) {
 				this.errorMsg = "Invalid username, it can contain only letters and numbers for a maximum of 16 characters.";
-				document.getElementsByTagName("input")[0].style.outline = "auto";
-                document.getElementsByTagName("input")[0].style.outlineColor = "red";
 				this.filteredUsers = [];
 				return;
 				}
@@ -92,8 +90,6 @@ export default {
         selectUser(user) {
             if (this.members.some(member => member.userId === user.userId) || user.userId === Number(sessionStorage.userID)) {
                 this.errorMsg = "User is already in the group";
-                document.getElementsByTagName("input")[0].style.outline = "auto";
-                document.getElementsByTagName("input")[0].style.outlineColor = "red";
             }
 			else if (!this.newGroupMembers.includes(user)) {
 				this.newGroupMembers.push(user);
@@ -184,6 +180,8 @@ export default {
                 document.getElementsByTagName("input")[0].style.outline = "auto";
                 document.getElementsByTagName("input")[0].style.outlineColor = "red";
             };
+        },
+        mounted() {
         }
     }
 }</script>

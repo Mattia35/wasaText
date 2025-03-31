@@ -184,6 +184,9 @@ func (rt *_router) SendMessage(w http.ResponseWriter, r *http.Request, ps httpro
 		}
 		// Set the message query in the response
 		response.MessToreplyTo = MessToreplyTo
+
+		// Set the reply id in the message
+		mess.ReplyId = messIdToReplyTo
 	}
 
 	// Insert the message in the db

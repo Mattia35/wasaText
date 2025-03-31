@@ -52,13 +52,13 @@ func (rt *_router) GetConversations(w http.ResponseWriter, r *http.Request, ps h
 	for idx, conv := range conversations {
 		if conv.GroupId == 0 {
 			// Get the user from the conversation
-			userID, err := rt.db.GetUserByConv(conv.ConvId, UserId)
+			destUser, err := rt.db.GetOtherUserByConv(conv.ConvId, UserId)
 			if err != nil {
 				http.Error(w, "Bad Request"+err.Error(), http.StatusBadRequest)
 				return
 			}
 			// Get the user
-			user, err := rt.db.GetUserById(userID.UserId)
+			user, err := rt.db.GetUserById(destUser.UserId)
 			if err != nil {
 				http.Error(w, "Bad Request"+err.Error(), http.StatusBadRequest)
 				return

@@ -11,4 +11,6 @@ type Message struct {
 	SenderId  int       `json:"senderId"`
 	Photo     string    `json:"photo"`
 	Gif       string    `json:"gif"`
+	Forward   bool      `json:"forward"`
+	ReplyId   int       `json:"replyId"`
 }

@@ -81,7 +81,7 @@ func (rt *_router) AddToGroup(w http.ResponseWriter, r *http.Request, ps httprou
 			return
 		}
 		// Select the conversation of the group
-		conversation, err := rt.db.GetConvByGroupId(groupId)
+		_,conversation, err := rt.db.GetConvByGroupId(groupId)
 		if err != nil {
 			ctx.Logger.WithError(err).Error("you can't add a user to the conversation of the group")
 			w.WriteHeader(http.StatusInternalServerError)

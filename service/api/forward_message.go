@@ -114,9 +114,44 @@ func (rt *_router) ForwardMessage(w http.ResponseWriter, r *http.Request, ps htt
 	for i := 0; i < len(request.DestConvId); i++ {
 		if request.DestConvId[i].DestGroup != 0 {
 			// Get conv by group id
-			AllConv, err := rt.db.GetConvByGroupId(request.DestConvId[i].DestGroup)
+			check2, AllConv, err := rt.db.GetConvByGroupId(request.DestConvId[i].DestGroup)
 			if err != nil {
 				http.Error(w, "Internal server error"+err.Error(), http.StatusInternalServerError)
+				return
+			}
+			// If the group doesn't exist, return an error
+			if !check2 {
+				http.Error(w, "The group doesn't exist", http.StatusBadRequest)
+				return
+			}
+
+			// Check if the conversation exists
+			Conver = AllConv.ConvId
+			check, err := rt.db.DoConversationExist(Conver)
+			if err != nil {
+				http.Error(w, "Internal server error"+err.Error(), http.StatusInternalServerError)
+				return
+			}
+			// If the conversation doesn't exist, return an error
+			if !check {
+				http.Error(w, "The group doesn't exist", http.StatusBadRequest)
+				return
+			}
+		}
+	}
+
+	// For each destination, check if it is a group or a user
+	for i := 0; i < len(request.DestConvId); i++ {
+		if request.DestConvId[i].DestGroup != 0 {
+			// Get conv by group id
+			check2, AllConv, err := rt.db.GetConvByGroupId(request.DestConvId[i].DestGroup)
+			if err != nil {
+				http.Error(w, "Internal server error"+err.Error(), http.StatusInternalServerError)
+				return
+			}
+			// If the group doesn't exist, return an error
+			if !check2 {
+				http.Error(w, "The group doesn't exist", http.StatusBadRequest)
 				return
 			}
 			// Check if the conversation exists
@@ -190,6 +225,8 @@ func (rt *_router) ForwardMessage(w http.ResponseWriter, r *http.Request, ps htt
 		mess.ConvId = Conver
 		mess.Photo = message.Photo
 		mess.Gif = message.Gif
+		mess.Forward = true
+		mess.ReplyId = 0
 
 		// Send the message
 		mess, err = rt.db.CreateMessage(mess)

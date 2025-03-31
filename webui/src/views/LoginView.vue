@@ -67,7 +67,7 @@ export default {
   <div class="login-container">
     <form @submit.prevent="doLogin">
       <h1>WasaText</h1>
-      <input type="text" v-model="username" placeholder="Enter your username" />
+      <input type="text" v-model="username" placeholder="Enter your username" required/>
       <button type="submit">Login</button>
     </form>
   </div>

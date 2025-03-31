@@ -10,6 +10,11 @@ export default {
             errorMsg: "",
         }
     },
+    watch: {
+		username() {
+			this.errorMsg = "";
+		},
+    },
     emits: ['to-home', 
             'login-success', 
             'update-username', 
@@ -57,11 +62,11 @@ export default {
                 <div class="modal-header">
                     <form @submit.prevent="setNewUsername">
                         <h3>Set new username</h3>
+                        <ErrorMsg v-if="errorMsg" :msg="errorMsg"></ErrorMsg>
                         <input type="text" v-model="username" placeholder="Enter your new username" />
                         <button type="submit">confirm</button>
                     </form>
                 </div>
-                <ErrorMsg v-if="errorMsg" :msg="errorMsg"></ErrorMsg>
             </div>
         </div>        
     </div>

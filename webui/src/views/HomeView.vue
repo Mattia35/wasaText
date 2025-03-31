@@ -33,6 +33,7 @@ export default {
 	},
 	methods: {
 		goToChat(conversation) {
+			
 			if (conversation.conversation.group != 0) {
 				sessionStorage.groupID = conversation.conversation.group;
 				sessionStorage.recipientPhoto = conversation.group.groupPhoto;
@@ -58,13 +59,16 @@ export default {
 			// check if the user is already in a conversation with the selected user
 			for (let i = 0; i < this.conversations.length; i++) {
 				if (this.conversations[i].conversation.group == 0 && this.conversations[i].user.userId == this.groupMembers[0].userId) {
-					this.errorMsg = "A conversation with this user already exists!";
-					document.getElementsByTagName("input")[0].style.outline = "auto";
-                	document.getElementsByTagName("input")[0].style.outlineColor = "red";
+					this.errorMsg2 = "A conversation with this user already exists!";
 					return;
 				}
+				sessionStorage.recipientName = this.groupMembers[0].username;
+				sessionStorage.recipientPhoto = this.groupMembers[0].userPhoto;
+				sessionStorage.members = "";
+				sessionStorage.groupID = 0;
+				sessionStorage.chatUserID = this.groupMembers[0].userId;
 			}
-			 // FAI UNA CHAT TEMPORANEA CON UNA CONVERSAZIONE VUOTA!!!!!!!
+			this.$router.push(`/temporary-chat/${this.groupMembers[0].username}`);
 		},
 		async getConversations() {
 			this.errorMsg = "";
@@ -85,8 +89,6 @@ export default {
 			if (this.searchText.length > 0) {
 				if (this.searchText.length > 15 || !this.usernameValidation.test(this.searchText)) {
 				this.errorMsg2 = "Invalid username, it can contain only letters and numbers for a maximum of 16 characters.";
-				document.getElementsByTagName("input")[0].style.outline = "auto";
-                document.getElementsByTagName("input")[0].style.outlineColor = "red";
 				this.filteredUsers = [];
 				return;
 				}
@@ -109,8 +111,6 @@ export default {
 		selectUser(user) {
 			if (user.userId === Number(sessionStorage.userID)) {
 				this.errorMsg2 = "It's not necessary that you select yourself!";
-				document.getElementsByTagName("input")[0].style.outline = "auto";
-				document.getElementsByTagName("input")[0].style.outlineColor = "red";
 			}
 			else if (!this.groupMembers.some(member => member.userId === user.userId)) {
 				this.groupMembers.push(user);
@@ -168,6 +168,9 @@ export default {
 
 		removeMember(index) {
 			this.groupMembers.splice(index, 1);
+			if (this.errorMsg2) {
+				this.errorMsg2 = "";
+			}
 		},
 	},
 	mounted() {
@@ -282,7 +285,7 @@ export default {
 			<div v-if="groupMembers.length != 1" class="select-user">
 				<label for="groupMembers">Select the user</label>
 				<div class="input-members">
-					<input type="text" class="form-control" v-model="searchText" placeholder="Enter a username" />
+					<input type="text" class="form-control" v-model="searchText" placeholder="Enter a username" required/>
 				</div>
 				 <!-- Search and print all users who have username that start with the text in the input space -->
 				 <div class="search-results">
@@ -291,7 +294,7 @@ export default {
 					</div>
 				</div>	
 			</div>
-			<ErrorMsg v-if="errorMsg" :msg="errorMsg"></ErrorMsg>
+			<ErrorMsg v-if="errorMsg2" :msg="errorMsg2"></ErrorMsg>
 			<ul>
 				<!-- User who is selected -->
 				<label v-if="groupMembers.length > 0">You have selected an user. If you have selected a wrong person, unselect him and search for the right one!</label>

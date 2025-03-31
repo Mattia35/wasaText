@@ -13,6 +13,21 @@ export default {
             newMessage: "",
             newPhoto: null,
             showGroupInfo: false,
+            control: false,
+            userId: Number(sessionStorage.userID),
+            infoGroupMembers: [],
+            infoGroupMembersQuantity: 0,
+            option: false,
+            showForwardBool: false,
+            conversations: [],
+            conversationsFiltered: [],
+            conversationsSelected: [],
+            searchText: "",
+            filteredUsers: [],
+            errorMsg2: "",
+            usernameValidation: new RegExp('^[a-z0-9]{1,15}$'),
+            selectedUsers: [],
+            messId: 0,
         }
     },
     emits: ['to-home', 
@@ -26,7 +41,122 @@ export default {
     components: {
         groupInfo
     },
+    watch: {
+		searchText() {
+			this.filterUsers();
+		}
+	},
     methods: {
+        ForwardMessage() {
+            this.errorMsg2 = "";
+            if (this.conversationsSelected.length === 0 && this.selectedUsers.length === 0) {
+                this.errorMsg2 = "You must select at least one conversation or user!";
+                return;
+            }
+            let object = {
+                user: 0,
+                group: 0,
+            }
+            let destination = [];
+            for (let i = 0; i < this.conversationsSelected.length; i++) {
+                object = {
+                    user: 0,
+                    group: this.conversationsSelected[i].conversation.group,
+                }
+                destination.push(object);
+            }
+            object = {
+                user: 0,
+                group: 0,
+            }
+            for (let i = 0; i < this.selectedUsers.length; i++) {
+                object = {
+                    user: this.selectedUsers[i].userId,
+                    group: 0,
+                }
+                destination.push(object);
+            }
+            object = {
+                user: 0,
+                group: 0,
+            }
+            this.conversationsSelected = [];
+            this.selectedUsers = [];
+            this.conversationsFiltered = [];
+            this.filteredUsers = [];
+            this.searchText = "";
+            const input = {
+                destination: destination,
+            }
+            try { 
+                this.$axios.post(`/users/${sessionStorage.userID}/conversations/${sessionStorage.convId}/messages/${this.messId}`, input, { headers: { 'Authorization': `${sessionStorage.token}` } });
+                this.showForwardBool = false;
+                this.option = false;
+            } catch (e) {
+                this.errorMsg = e.toString();
+                document.getElementsByTagName("input")[0].style.outline = "auto";
+                document.getElementsByTagName("input")[0].style.outlineColor = "red";
+            };
+        },
+        selectConversation(conversation) {
+            if (this.conversationsSelected.some(conv => conv.conversation.convId === conversation.conversation.convId)) {
+                this.errorMsg2 = "You have already selected this conversation!";
+                return;
+            }
+            this.conversationsSelected.push(conversation);
+        },
+
+        removeGroup(index) {
+            this.conversationsSelected.splice(index, 1);
+            if (this.errorMsg2) {
+                this.errorMsg2 = "";
+            }
+        },
+        removeMember(index) {
+			this.selectedUsers.splice(index, 1);
+			if (this.errorMsg2) {
+				this.errorMsg2 = "";
+			}
+		},
+        async filterUsers() {
+            if (this.errorMsg2 !== "It's not necessary that you select yourself!" || this.searchText.length !== 0) {
+                this.errorMsg2 = "";
+            }
+			this.filteredUsers = [];
+
+			if (this.searchText.length > 0) {
+				if (this.searchText.length > 15 || !this.usernameValidation.test(this.searchText)) {
+				this.errorMsg2 = "Invalid username, it can contain only letters and numbers for a maximum of 16 characters.";
+				this.filteredUsers = [];
+				return;
+				}
+				try {
+					let response = await this.$axios.get(`/users?query=${this.searchText}`, { headers: { 'Authorization': `${sessionStorage.token}` } });
+					if (response.data == null) {
+					this.filteredUsers = [];
+					return;
+					}
+					this.filteredUsers = response.data;
+				} catch (e) {
+					this.errorMsg2 = e.toString();
+					document.getElementsByTagName("input")[0].style.outline = "auto";
+                	document.getElementsByTagName("input")[0].style.outlineColor = "red";
+					this.filteredUsers = [];
+				}
+			}
+		},
+
+        selectUser(user) {
+			if (user.userId === Number(sessionStorage.userID)) {
+				this.errorMsg2 = "It's not necessary that you select yourself!";
+			}
+			else if (!this.selectedUsers.some(member => member.userId === user.userId)) {
+				this.selectedUsers.push(user);
+			}
+			this.searchText = "";  
+			this.filteredUsers = [];  
+			},
+
         updateGroupMembers() {
             this.members = sessionStorage.members;
         },
@@ -67,9 +197,13 @@ export default {
             }
             sessionStorage.removeItem("recipientName");
             sessionStorage.removeItem("recipientPhoto");
+            this.control = true;
             this.$router.push("/home");
         },
         async getMessages() {
+            if (this.control) {
+                return;
+            }
             this.errorMsg = "";
             this.messages = [];
             try{
@@ -111,15 +245,53 @@ export default {
         },
         groupInfo() {
             this.showGroupInfo = !this.showGroupInfo;
+            if (sessionStorage.membersOfGroup) {
+                this.infoGroupMembers = JSON.parse(sessionStorage.membersOfGroup);
+            }
+            this.infoGroupMembersQuantity = this.infoGroupMembers.length+1;
         },
+        showOption(object) {
+            this.messId = object.message.messageId;
+            console.log(this.messId);
+            this.option = !this.option;
+        },
+
+        showOption2() {
+            console.log("ciao");
+            this.option = !this.option;
+        },
+        showForward() {
+            this.showForwardBool = !this.showForwardBool;
+            this.getConversations();
+            this.option = !this.option;
+        },
+
+        async getConversations() {
+			this.errorMsg = "";
+			this.conversations = [];
+			try{
+				let response = await this.$axios.get(`/users/${sessionStorage.userID}/conversations`, { headers: { 'Authorization': `${sessionStorage.token}` } });
+				this.conversations = response.data;
+                for (let i = 0; i < this.conversations.length; i++) {
+                    if (this.conversations[i].conversation.group != 0) {
+                        this.conversationsFiltered.push(this.conversations[i]);
+                    }
+                }
+
+			} catch (e) {
+				this.errorMsg = e.toString();
+				document.getElementsByTagName("input")[0].style.outline = "auto";
+                document.getElementsByTagName("input")[0].style.outlineColor = "red";
+			}
+		}
     },
     mounted() {
         this.getMessages();
         this.intervalId = setInterval(async () => {
-			clearInterval(this.intervalId);
-			await this.getMessages();
-			this.intervalId = setInterval(this.getMessages, 5000);
-		}, 5000);
+            clearInterval(this.intervalId);
+            await this.getMessages();
+            this.intervalId = setInterval(this.getMessages, 5000);
+        }, 5000);
     }
 
 }
@@ -146,19 +318,35 @@ export default {
                 </svg>
             </button>
             <img :src="`data:image/jpg;base64,${recipientPhoto}`" alt="Conversation photo" class="recipient-photo">
-            <div class="recipient-info" @click="goToUserInfo">
+            <div class="recipient-info">
                 <h2 class="recipient-name">{{ recipientname }}</h2>
             </div>
         </div>
         <div class="chat-body">
             <div class="chat-messages">
-                <div v-for="object in messages" :key="object.message.messageId" :class="{'message': true, 'user-message': object.sender.username === username, 'other-message': object.sender.username !== username}">
+                <div v-for="object in messages" @click="showOption(object)" :key="object.message.messageId" :class="{'message': true, 'user-message': object.sender.username === username, 'other-message': object.sender.username !== username}">
                     <div v-if="groupId != 0 && object.sender.username !== username" class="message-header">
                         <h4 >{{ object.sender.username }}</h4>
-                        <p>{{ object.dateTime }}</p>
+                        <div class="forwarded-date">
+                            <p class="only-date">{{ object.dateTime }}</p>
+                            <div v-if = "object.message.forward" class="forwarded-message">
+                                <svg class="feather"> 
+                                    <use href="/feather-sprite-v4.29.0.svg#message-square" />
+                                </svg>
+                                <p>Forwarded message</p>
+                            </div>
+                        </div>
                     </div>
                     <div v-else class="message-header" >
-                        <p>{{ object.dateTime }}</p>
+                        <div class="forwarded-date">
+                            <p class="only-date">{{ object.dateTime }}</p>
+                            <div v-if = "object.message.forward" class="forwarded-message">
+                                <svg class="feather"> 
+                                    <use href="/feather-sprite-v4.29.0.svg#message-square" />
+                                </svg>
+                                <p>Forwarded message</p>
+                            </div>
+                        </div>    
                     </div>
                     <div v-if="!object.message.text && object.message.photo" class="message-body">
                         <img class="img" :src="`data:image/jpg;base64,${object.message.photo}`" alt="Message image" />
@@ -172,6 +360,19 @@ export default {
                     </div>
                     <div v-if="object.message.text && !object.message.photo" class="message-body">
                         <p>{{ object.message.text }}</p>
+                    </div>
+                    <div v-if="!object.message.status && object.sender.userId === userId" class="checkmark">
+                        <svg class="feather"> 
+                            <use href="/feather-sprite-v4.29.0.svg#check" />
+                        </svg>
+                    </div>
+                    <div v-if="object.message.status && object.sender.userId === userId" class="checkmark">
+                        <svg class="feather"> 
+                            <use href="/feather-sprite-v4.29.0.svg#check" />
+                        </svg>
+                        <svg class="feather"> 
+                            <use href="/feather-sprite-v4.29.0.svg#check" />
+                        </svg>
                     </div>
                 </div>
             </div>
@@ -195,7 +396,71 @@ export default {
             </form>
         </div>
     </div>
-    <groupInfo :show1="showGroupInfo" @close="groupInfo" @update-groupname="updateGroupname" @update-group-photo="updateGroupPhoto" @update-group-members="updateGroupMembers"></groupInfo>
+    
+
+    <div v-if="option" @click="showOption2" class="fullscreen-container">
+		<div v-if="option" @click.stop class="message-option-container">
+			<!-- Button to the select the message as cause of reply -->
+			<button type="button" class="option-button" >Reply to it</button>
+            <!-- Button to forward the message -->
+			<button type="button" class="option-button" @click="showForward">Forward it</button>
+			<!-- Button to comment/uncomment message -->
+			<button type="button" class="option-button" >Comment or uncomment it</button>
+		</div>
+	</div>
+
+    <div v-if="showForwardBool" @click="showForward" class="fullscreen-container">
+        <div @click.stop class="menu-forward">
+            <h3 class="menu-forward-title">Select conversations to forward the message</h3>
+            <form @submit.prevent="ForwardMessage">
+                <!-- Select conversations -->
+                <div class="select-conv">
+                    <!-- Select groups -->
+                    <div class="all-conversations">
+                        <p class="instruction">Your groups</p>
+                        <button type="button" v-for="conversation in conversationsFiltered" :key="conversation.conversation.userId" @click="selectConversation(conversation)" class="conversation">
+                            <img v-if="conversation.conversation.group != 0" :src="`data:image/jpg;base64,${conversation.group.groupPhoto}`" alt="Conversation photo" >
+					        <p class="conversation-name" v-if="conversation.conversation.group != 0">{{ conversation.group.username }}</p>
+						</button>
+                        <ul>
+                            <!-- Group who is selected -->
+                            <li v-for="(conv, index) in conversationsSelected" :key="index">
+                                <p>{{ conv.group.username }}</p>
+                                <button @click.prevent="removeGroup(index)">x</button>
+                            </li>
+                        </ul>
+                    </div>
+                    <p class="instruction">Other users</p>
+                    <!-- Select users -->
+                    <div class="group-members">
+                        <div class="input-members">
+                            <input type="text" class="form-control" v-model="searchText" placeholder="Enter a username" />
+                        </div>
+                            <!-- Search and print all users who have username that start with the text in the input space -->
+                            <div class="search-results">
+                            <div v-for="user in filteredUsers" :key="user.userId" @click="selectUser(user)" class="user">
+                                <p>{{ user.username }}</p>
+                            </div>
+                        </div>	
+                    </div>
+                    <ErrorMsg v-if="errorMsg2" :msg="errorMsg2"></ErrorMsg>	
+                </div>
+                <div class="usersChoosed">
+                    <ul>
+                        <!-- User who is selected -->
+                        <li class= "userChoosed "v-for="(conv, index) in selectedUsers" :key="index">
+                            <p>{{ conv.username }}</p>
+                            <button @click.prevent="removeMember(index)">x</button>
+                        </li>
+                    </ul>
+                </div>
+                <hr class="separator">
+                <button class="buttonSubmit" type="submit">Forward</button>
+            </form>
+        </div>
+    </div>
+
+    <groupInfo :members="infoGroupMembers" :membersQuantity="infoGroupMembersQuantity" :show1="showGroupInfo" @close="groupInfo" @update-groupname="updateGroupname" @update-group-photo="updateGroupPhoto" @update-group-members="updateGroupMembers"></groupInfo>
 </template>
 
 <style>
@@ -296,6 +561,7 @@ export default {
     min-width: 300px;
     max-width: 80%;
     margin-bottom: 10px;
+    cursor: pointer;
 }
 .message.user-message {
     align-self: flex-end; 
@@ -346,6 +612,11 @@ export default {
     border-radius: 5px;
 }
 
+.checkmark {
+    display: flex;
+    align-self: flex-end;
+}
+
 .chat-footer {
     padding: 10px;
     border-top: 1px solid #ccc;
@@ -384,5 +655,190 @@ export default {
     color:#333;
     cursor: pointer;
 }
+
+.fullscreen-container {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+}
+
+.message-option-container {
+    position: fixed;
+    width: 300px;
+    height: 120px;
+    background-color: #f9f9f9;
+    display: flex;
+    flex-direction: column;
+    border-radius: 5px;
+    z-index: 10001;
+}
+
+.option-button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    background-color: white;
+    color: black;
+    cursor: pointer;
+    width: 100%;
+    text-align: center;
+    transition: background 0.3s;
+}
+
+.option-button:hover {
+    background-color: #007bff;
+    color: white;
+}
+
+.menu-forward {
+    position: fixed;
+    width: 700px;
+    height: 800px;
+    background-color: #f9f9f9;
+    display: flex;
+    flex-direction: column;
+    border-radius: 5px;
+    z-index: 10001;
+    text-align: center;
+}
+
+.menu-forward-title {
+    font-size: 25px;
+    color: #333;
+    margin: 20px;
+}
+
+.select-conv {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 10px;
+}
+
+.all-conversations {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    padding: 5px;
+
+}
+
+.instruction {
+    font-size: 15px;
+    color: #333;
+    align-self: flex-start;
+    padding-left: 30px;
+    margin: 5px;
+}
+
+.conversation {
+    display: flex;
+    cursor: pointer;
+    border-radius: 5px;
+    border: none;
+    padding: 5px;
+}
+
+
+.conversation img {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.conversation-name {
+    font-size: 20px;
+    color: black;
+    font-weight: normal;
+}
+
+.group-members {
+    display: flex;
+    flex-direction: column;
+    padding: 5px;
+}
+
+.input-members {
+    display: flex;
+    gap: 5px;
+}
+
+.form-control {
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+.search-results {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.user {
+    display: flex;
+    background-color: #f9f9f9;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+.user p {
+    font-size: 16px;
+    color: black;
+    font-weight: normal;
+    padding: 5px;
+}
+
+
+.separator {
+    margin: 20px;
+}
+
+.usersChoosed {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    padding: 15px;
+}
+
+.userChoosed {
+    display: flex;
+    gap: 5px;
+    padding: 5px;
+    border-radius: 5px;
+    background-color: #f9f9f9;
+    
+}
+
+.forwarded-message {
+    display: flex;
+    flex-direction: row;
+
+}
+
+.forwarded-message p {
+    font-size: 10px;
+    font-style: oblique;
+}
+
+.forwarded-message svg {
+    width: 15px;
+    height: 15px;
+}
+
+.forwarded-date {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    align-items: flex-end;
+}
+
+.only-date {
+    margin-bottom: 2px;
+}
+
+
 
 </style>

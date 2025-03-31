@@ -33,6 +33,8 @@ var messTable = `CREATE TABLE IF NOT EXISTS messTable (
 	photo STRING,
 	gif STRING,
 	senderId INTEGER NOT NULL,
+	forward BOOLEAN,
+	replyId INTEGER,
 	PRIMARY KEY (messId, convId)
 	CONSTRAINT message
 		FOREIGN KEY (convId) REFERENCES convTable (convId)

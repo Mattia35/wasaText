@@ -8,7 +8,7 @@ import (
 	"progetto.wasa/service/api/structions"
 )
 
-var query_ADDMESS = `INSERT INTO messTable (messId, dateTime, text, status, convId, photo, gif, senderId) VALUES (?, ?, ?, ?, ?, ?, ?, ?);`
+var query_ADDMESS = `INSERT INTO messTable (messId, dateTime, text, status, convId, photo, gif, senderId, forward, replyId) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`
 var query_MAXMESSID = `SELECT MAX(messId) FROM messTable WHERE convId = ?;`
 
 func (db *appdbimpl) CreateMessage(mes structions.Message) (structions.Message, error) {
@@ -20,6 +20,8 @@ func (db *appdbimpl) CreateMessage(mes structions.Message) (structions.Message, 
 	message.Photo = mes.Photo
 	message.Status = mes.Status
 	message.Gif = mes.Gif
+	message.ReplyId = mes.ReplyId
+	message.Forward = mes.Forward
 
 	// ------FIND MESSID---------//
 	var _maxID = sql.NullInt64{Int64: 0, Valid: false}
@@ -50,7 +52,7 @@ func (db *appdbimpl) CreateMessage(mes structions.Message) (structions.Message, 
 	message.MessageId = maxID + 1
 
 	// ------------INSERT USER--------------//
-	_, err = db.c.Exec(query_ADDMESS, message.MessageId, message.DateTime, message.Text, message.Status, message.ConvId, message.Photo, message.Gif, message.SenderId)
+	_, err = db.c.Exec(query_ADDMESS, message.MessageId, message.DateTime, message.Text, message.Status, message.ConvId, message.Photo, message.Gif, message.SenderId, message.Forward, message.ReplyId)
 	if err != nil {
 		return message, err
 	}

@@ -51,7 +51,7 @@ func (rt *_router) LeaveGroup(w http.ResponseWriter, r *http.Request, ps httprou
 		return
 	}
 	// Select the conversation of the group
-	conv, err := rt.db.GetConvByGroupId(groupId)
+	_, conv, err := rt.db.GetConvByGroupId(groupId)
 	if err != nil {
 		http.Error(w, "Internal Server Error"+err.Error(), http.StatusInternalServerError)
 		return
