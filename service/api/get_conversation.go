@@ -103,11 +103,19 @@ func (rt *_router) GetConversation(w http.ResponseWriter, r *http.Request, ps ht
 		messages = messages[len(messages)-50:]
 	}
 
+	type CommentData struct {
+		CommentId int             `json:"commentId"`
+		MessageId int             `json:"messageId"`
+		Content   string          `json:"content"`
+		Sender    structions.User `json:"sender"`
+		ConvId    int             `json:"convId"`
+	}
+
 	type MessageData struct {
-		Message  structions.Message   `json:"message"`
-		Sender   structions.User      `json:"sender"`
-		DateTime string               `json:"dateTime"`
-		Comments []structions.Comment `json:"comments"`
+		Message  structions.Message `json:"message"`
+		Sender   structions.User    `json:"sender"`
+		DateTime string             `json:"dateTime"`
+		Comments []CommentData      `json:"comments"`
 	}
 
 	var response []MessageData
@@ -118,16 +126,31 @@ func (rt *_router) GetConversation(w http.ResponseWriter, r *http.Request, ps ht
 			http.Error(w, "Internal server error G"+err.Error(), http.StatusInternalServerError)
 			return
 		}
+
+		var commentsData []CommentData
+
 		// Get the comments
 		comments, err := rt.db.GetCommentsByMessId(messages[i].MessageId, convId)
 		if err != nil {
 			http.Error(w, "Internal server error H"+err.Error(), http.StatusInternalServerError)
 			return
 		}
+
+		// Save the commments in commentsData
+		for j := 0; j < len(comments); j++ {
+			// Get the sender
+			sender, err := rt.db.GetUserById(comments[j].SenderId)
+			if err != nil {
+				http.Error(w, "Internal server error I"+err.Error(), http.StatusInternalServerError)
+				return
+			}
+			commentsData = append(commentsData, CommentData{comments[j].CommentId, comments[j].MessageId, comments[j].Content, sender, comments[j].ConvId})
+		}
+
 		// Get the date and time
 		dateTime := messages[i].DateTime.Format("15:04 - 02/01/2006")
 
-		response = append(response, MessageData{messages[i], sender, dateTime, comments})
+		response = append(response, MessageData{messages[i], sender, dateTime, commentsData})
 	}
 
 	// Sort the messages by message dateTime

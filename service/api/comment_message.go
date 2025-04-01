@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
-	"unicode"
 
 	"github.com/julienschmidt/httprouter"
 	"progetto.wasa/service/api/reqcontext"
@@ -71,16 +70,18 @@ func (rt *_router) CommentMessage(w http.ResponseWriter, r *http.Request, ps htt
 		return
 	}
 
-	// Check if the string is an emoji
-	runes := []rune(request.Emoji)
-	if len(runes) != 1 {
-		http.Error(w, "The string has more than 1 character", http.StatusBadRequest)
-		return
+	emojis := []string{"😀", "😂", "😍", "😎", "😭", "😡", "🎉", "❤️", "👍", "🔥"}
+
+	// Check if the string is one of the emojis
+	check := false
+	for _, emoji := range emojis {
+		if request.Emoji == emoji {
+			check = true
+			break
+		}
 	}
-	runee := runes[0]
-	check := unicode.Is(unicode.So, runee)
 	if !check {
-		http.Error(w, "The string isn't a emoji", http.StatusBadRequest)
+		http.Error(w, "Bad Request: the input is not valid", http.StatusBadRequest)
 		return
 	}
 
@@ -112,16 +113,32 @@ func (rt *_router) CommentMessage(w http.ResponseWriter, r *http.Request, ps htt
 			return
 		}
 	}
-
-	type Response struct {
-		NewComment structions.Comment `json:"newComment"`
+    
+	type CommentData struct {
+		CommentId int             `json:"commentId"`
+		MessageId int             `json:"messageId"`
+		Content   string          `json:"content"`
+		Sender    structions.User `json:"sender"`
+		ConvId    int             `json:"convId"`
 	}
-	var response Response
-	response.NewComment = comment
+
+	// Get the user that has commented the message
+	user, err := rt.db.GetUserById(UserId)
+	if err != nil {
+		http.Error(w, "Internal server error"+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	var resp CommentData
+	resp.CommentId = comment.CommentId
+	resp.MessageId = comment.MessageId
+	resp.Content = comment.Content
+	resp.Sender = user
+	resp.ConvId = comment.ConvId
 
 	// Response
 	w.Header().Set("content-type", "application/json")
-	if err := json.NewEncoder(w).Encode(response); err != nil {
+	if err := json.NewEncoder(w).Encode(resp); err != nil {
 		http.Error(w, "Error encoding response"+err.Error(), http.StatusInternalServerError)
 		return
 	}

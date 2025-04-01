@@ -25,9 +25,16 @@ export default {
             searchText: "",
             filteredUsers: [],
             errorMsg2: "",
+            errorMsg3: "",
             usernameValidation: new RegExp('^[a-z0-9]{1,15}$'),
             selectedUsers: [],
             messId: 0,
+            selectedMessageId: 0,
+            showReplyTo: false,
+            showCom: false,
+            comments: [],
+            HaveICommented: false,
+            emojis: ["😀", "😂", "😍", "😎", "😭", "😡", "🎉", "❤️", "👍", "🔥"],
         }
     },
     emits: ['to-home', 
@@ -47,6 +54,106 @@ export default {
 		}
 	},
     methods: {
+        async commentMessage(input) {
+            for (let i = 0; i < this.messages.length; i++) {
+                if (this.messages[i].message.messageId === this.messId) {
+                    if (this.messages[i].sender.userId === this.userId) {
+                        this.errorMsg3 = "You can't comment your own message!";
+                        return;
+                    }
+                }
+            }
+            console.log(input);
+            this.errorMsg3 = "";
+            try {
+                let response = await this.$axios.put(`/users/${sessionStorage.userID}/conversations/${sessionStorage.convId}/messages/${this.messId}/comments`, {
+                    emoji: input,
+                }, { headers: { 'Authorization': `${sessionStorage.token}` }});
+                this.getMessages();
+                const newComment = response.data;
+                for (let i = 0; i < this.comments.length; i++) {
+                    if (this.comments[i].sender.userId === this.userId) {
+                        this.HaveICommented = true;
+                        this.comments[i].content = newComment.content;
+                        break;
+                    }
+                }
+                if (!this.HaveICommented) {
+                    this.comments.push(newComment);
+                    this.HaveICommented = true;
+                }
+            } catch (e) {
+                this.errorMsg3 = e.toString();
+            }
+        },
+        async uncommentMessage() {
+            let commentId = 0;
+            for (let i = 0; i < this.messages.length; i++) {
+                if (this.messages[i].message.messageId === this.messId) {
+                    if (this.messages[i].sender.userId === this.userId) {
+                        this.errorMsg3 = "You haven't commented this message, and can't comment your own message!";
+                        return;
+                    }
+                }
+            }
+            if (!this.HaveICommented) {
+                this.errorMsg3 = "You haven't commented this message!";
+                return;
+            }
+            else {
+                for (let i = 0; i < this.comments.length; i++) {
+                    if (this.comments[i].sender.userId === this.userId) {
+                        commentId = this.comments[i].commentId;
+                        break;
+                    }
+                }
+            }
+            this.errorMsg3 = "";
+            try {
+                await this.$axios.delete(`/users/${sessionStorage.userID}/conversations/${sessionStorage.convId}/messages/${this.messId}/comments/${commentId}`, { headers: { 'Authorization': `${sessionStorage.token}` }});
+                this.getMessages();
+                for (let i = 0; i < this.comments.length; i++) {
+                    if (this.comments[i].sender.userId === this.userId) {
+                        this.comments.splice(i, 1);
+                        this.HaveICommented = false;
+                        break;
+                    }
+                }
+            } catch (e) {
+                this.errorMsg3 = e.toString();
+            }
+        },
+        showComments(object) {
+            this.messId = object.message.messageId;
+            this.HaveICommented = false;
+            this.showCom = !this.showCom;
+            if (object.comments == null) {
+                this.comments = [];
+                return;
+            }
+            this.comments = object.comments;
+            for (let i = 0; i < this.comments.length; i++) {
+                if (this.comments[i].sender.userId === this.userId) {
+                    this.HaveICommented = true;
+                    const comment = this.comments.splice(i, 1)[0];
+                    this.comments.push(comment);
+                    break;
+                }
+            }
+        },
+        showComments2() {
+            this.showCom = !this.showCom;
+            this.errorMsg3 = "";
+        },
+        selectMessage() {
+            this.showReplyTo = true;
+            this.selectedMessageId = this.messId;
+            this.option = false;
+        },
+        unselectMessage() {
+            this.showReplyTo = false;
+            this.selectedMessageId = 0;
+        },
         async deleteMessage() {
             this.errorMsg = "";
             try {
@@ -232,6 +339,9 @@ export default {
             if (this.newMessage) {
                 formData.append('text', this.newMessage);
             }
+            if (this.selectedMessageId != 0) {
+                formData.append('messToReplyTo', this.selectedMessageId);
+            }
             if (this.newMessage && this.newPhoto && (this.newPhoto.type === "image/gif")) {
                 this.errorMsg = "You must write a message or select a photo/gif";
                 return;
@@ -242,6 +352,8 @@ export default {
                 this.newMessage = "";
                 this.newPhoto = null;
                 this.getMessages();
+                this.showReplyTo = false;
+                this.selectedMessageId = 0;
             } catch (e) {
                 this.errorMsg = e.toString();
             }
@@ -360,18 +472,22 @@ export default {
                     <div v-if="object.message.text && !object.message.photo" class="message-body">
                         <p>{{ object.message.text }}</p>
                     </div>
-                    <div v-if="!object.message.status && object.sender.userId === userId" class="checkmark">
-                        <svg class="feather"> 
-                            <use href="/feather-sprite-v4.29.0.svg#check" />
-                        </svg>
-                    </div>
-                    <div v-if="object.message.status && object.sender.userId === userId" class="checkmark">
-                        <svg class="feather"> 
-                            <use href="/feather-sprite-v4.29.0.svg#check" />
-                        </svg>
-                        <svg class="feather"> 
-                            <use href="/feather-sprite-v4.29.0.svg#check" />
-                        </svg>
+                    <div class="checkmark-and-comments">
+                        <p v-if="object.message.senderId === userId" class="comments-user" @click.stop="showComments(object)">See all comments</p>
+                        <p v-else class="comments-dest" @click.stop="showComments(object)">See all comments</p>
+                        <div v-if="!object.message.status && object.sender.userId === userId" class="checkmark">
+                            <svg class="feather"> 
+                                <use href="/feather-sprite-v4.29.0.svg#check" />
+                            </svg>
+                        </div>
+                        <div v-if="object.message.status && object.sender.userId === userId" class="checkmark">
+                            <svg class="feather"> 
+                                <use href="/feather-sprite-v4.29.0.svg#check" />
+                            </svg>
+                            <svg class="feather"> 
+                                <use href="/feather-sprite-v4.29.0.svg#check" />
+                            </svg>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -381,10 +497,15 @@ export default {
             <form @submit.prevent="sendMessage">
                 <input @keydown.enter.prevent="sendMessage" type="text" v-model="newMessage" placeholder="Type a message" />
                 <input type="file" ref="file" accept=".jpg,.jpeg,.gif" @change="handleFileChange" style="display: none;"/>
+                <button class="remove-file-button" @click="unselectMessage" v-if="showReplyTo">
+                    <svg class="feather"> 
+                        <use href="/feather-sprite-v4.29.0.svg#trash-2" />
+                    </svg>
+                </button>
                 <button type="button" @click="fileInput" class="file-button" v-if="!newPhoto">
                     <svg class="feather"> 
                         <use href="/feather-sprite-v4.29.0.svg#paperclip" />
-                </svg>
+                    </svg>
                 </button>
                 <button class="remove-file-button" @click="removeFile" v-if="newPhoto">
                     <svg class="feather"> 
@@ -400,15 +521,43 @@ export default {
     <div v-if="option" @click="showOption2" class="fullscreen-container">
 		<div v-if="option" @click.stop class="message-option-container">
 			<!-- Button to the select the message as cause of reply -->
-			<button type="button" class="option-button" >Reply to it</button>
+			<button type="button" class="option-button" @click="selectMessage">Reply to</button>
             <!-- Button to forward the message -->
-			<button type="button" class="option-button" @click="showForward">Forward it</button>
-			<!-- Button to comment/uncomment message -->
-			<button type="button" class="option-button" >Comment or uncomment it</button>
+			<button type="button" class="option-button" @click="showForward">Forward</button>
             <!-- Button to delete message -->
-			<button type="button" class="option-button" @click="deleteMessage">Delete it</button>
+			<button type="button" class="option-button" @click="deleteMessage">Delete</button>
 		</div>
 	</div>
+
+
+    <div v-if="showCom" @click="showComments2" class="fullscreen-container">
+        <div @click.stop class="comments-option-container">
+            <div class="comments">
+                <p>Message comments</p>
+                <div v-if="comments.length === 0" class="no-comments">
+                    <p>No comments</p>
+                </div>
+                <div v-for="object in comments" :key="object.commentId" class="comment">
+                    <h4 v-if= "object.sender.userId !== userId">{{ object.sender.username }}:</h4>
+                    <h4 v-if= "object.sender.userId === userId">Me:</h4>
+                    <p >{{ object.content }}</p>
+                </div>
+            </div>
+            <div class="comment-input">
+                <h3>Comment message!</h3>
+                <div v-for="emoji in emojis" :key="emoji" class="emoji" @click="commentMessage(emoji)">
+                    {{ emoji }}
+                </div>
+                <div class="emoji" @click="uncommentMessage()">
+                    <svg class="feather"> 
+                        <use href="/feather-sprite-v4.29.0.svg#trash-2" />
+                    </svg>
+                </div>
+            </div>
+            <ErrorMsg v-if="errorMsg3" :msg="errorMsg3"></ErrorMsg>
+        </div>
+    </div>
+
 
     <div v-if="showForwardBool" @click="showForward" class="fullscreen-container">
         <div @click.stop class="menu-forward">
@@ -613,9 +762,25 @@ export default {
     border-radius: 5px;
 }
 
-.checkmark {
+.checkmark-and-comments {
     display: flex;
-    align-self: flex-end;
+    width: 100%;
+    height: 20px;
+}
+
+.checkmark {
+    margin-left: auto;
+}
+
+.comments-user {
+    margin-right: auto;
+    font-size: 14px;
+
+}
+
+.comments-dest {
+    margin-left: auto;
+    font-size: 14px;
 }
 
 .chat-footer {
@@ -668,7 +833,7 @@ export default {
 .message-option-container {
     position: fixed;
     width: 300px;
-    height: 160px;
+    height: 120px;
     background-color: #f9f9f9;
     display: flex;
     flex-direction: column;
@@ -840,6 +1005,85 @@ export default {
     margin-bottom: 2px;
 }
 
+.comments-option-container {
+    background: white;
+    width: 50%;
+    max-width: 600px;
+    border-radius: 10px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+}
 
+.comments {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
 
+.comments p {
+    margin-bottom: 10px;
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.no-comments {
+    text-align: center;
+    font-size: 14px;
+}
+
+.comment {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    gap: 10px;
+    margin-bottom: 10px;
+    padding: 10px;
+    border-radius: 5px;
+    background: #f1f1f1;
+    justify-content: center;
+}
+
+.comment h4 {
+    font-size: 14px;
+    font-weight: bold;
+    margin: 0;
+}
+
+.comment p {
+    font-size: 14px;
+    margin: 0;
+}
+
+.comment-input {
+    margin-top: 20px;
+    text-align: center;
+}
+
+.comment-input h3 {
+    margin-bottom: 10px;
+    font-size: 15px;
+}
+
+.emoji {
+    display: inline-block;
+    padding: 5px;
+    font-size: 1.5em;
+    cursor: pointer;
+    transition: transform 0.2s ease-in-out;
+}
+
+.emoji:hover {
+    transform: scale(1.2);
+}
+
+.emoji svg {
+    width: 20px;
+    height: 20px;
+    fill: #555;
+}
+
+.emoji:hover svg {
+    fill: red;
+}
 </style>
