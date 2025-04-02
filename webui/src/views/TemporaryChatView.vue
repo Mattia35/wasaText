@@ -15,7 +15,8 @@ export default {
             'update-photo', 
             'update-groupname', 
             'update-group-photo',
-            'update-group-members'],
+            'update-group-members',
+            'update-group-info'],
     methods: {
         goToHome() {
             sessionStorage.removeItem("recipientName");

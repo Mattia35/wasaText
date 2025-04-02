@@ -14,7 +14,7 @@ func (rt *_router) CreateGroup(w http.ResponseWriter, r *http.Request, ps httpro
 	// Check if the user request is valid
 	UserId, err := strconv.Atoi(ps.ByName("user"))
 	if err != nil {
-		http.Error(w, "Bad Request"+err.Error(), http.StatusBadRequest)
+		BadRequest(w, err, "Bad Request: ")
 		return
 	}
 
@@ -22,7 +22,7 @@ func (rt *_router) CreateGroup(w http.ResponseWriter, r *http.Request, ps httpro
 
 	// Check if the user is authorized
 	if UserId != userID {
-		http.Error(w, "Forbidden", http.StatusForbidden)
+		Forbidden(w, err, "Forbidden: ")
 		return
 	}
 
@@ -34,13 +34,13 @@ func (rt *_router) CreateGroup(w http.ResponseWriter, r *http.Request, ps httpro
 	var request RequestBody
 	// Check if the user makes a bad request
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-		http.Error(w, "Bad Request"+err.Error(), http.StatusBadRequest)
+		BadRequest(w, err, "Bad Request: ")
 		return
 	}
 	group.Username = request.Groupname
 	// Check if the group respects the regex, so there is a bad request
 	if !group.IsValid() {
-		http.Error(w, "Invalid groupname", http.StatusBadRequest)
+		BadRequest(w, err, "Invalid groupname: ")
 		return
 	}
 	var conversation structions.Conversation
@@ -48,8 +48,7 @@ func (rt *_router) CreateGroup(w http.ResponseWriter, r *http.Request, ps httpro
 	// Create the group
 	group, err = rt.db.CreateGroup(group, UserId)
 	if err != nil {
-		ctx.Logger.WithError(err).Error("can't create the group")
-		w.WriteHeader(http.StatusInternalServerError)
+		InternalServerError(w, err, "Can't create the group: ")
 		return
 	}
 
@@ -58,16 +57,14 @@ func (rt *_router) CreateGroup(w http.ResponseWriter, r *http.Request, ps httpro
 	// Create the group conversation
 	conversation, err = rt.db.CreateConversation(conversation)
 	if err != nil {
-		ctx.Logger.WithError(err).Error("can't create the conversation of the group")
-		w.WriteHeader(http.StatusInternalServerError)
+		InternalServerError(w, err, "Can't create the conversation of the group: ")
 		return
 	}
 
 	// Add the user who is creating the group to the group and conversation
 	err = rt.db.AddUserToConv(UserId, conversation.ConvId)
 	if err != nil {
-		ctx.Logger.WithError(err).Error("you can't add a user to the group")
-		w.WriteHeader(http.StatusInternalServerError)
+		InternalServerError(w, err, "Can't add the user to the conversation of the group: ")
 		return
 	}
 
@@ -75,20 +72,17 @@ func (rt *_router) CreateGroup(w http.ResponseWriter, r *http.Request, ps httpro
 	for i := 0; i < len(request.Users); i++ {
 		user, err := rt.db.UserControlByUsername(request.Users[i].Username)
 		if err != nil {
-			ctx.Logger.WithError(err).Error("you can't add a user to the group, because it doesn't exist")
-			w.WriteHeader(http.StatusBadRequest)
+			BadRequest(w, err, "You can't add a user to the group, because it doesn't exist: ")
 			return
 		}
 		err = rt.db.AddUserToGroup(user.UserId, group.GroupId)
 		if err != nil {
-			ctx.Logger.WithError(err).Error("you can't add a user to the group")
-			w.WriteHeader(http.StatusInternalServerError)
+			InternalServerError(w, err, "You can't add a user to the group: ")
 			return
 		}
 		err = rt.db.AddUserToConv(user.UserId, conversation.ConvId)
 		if err != nil {
-			ctx.Logger.WithError(err).Error("you can't add a user to the conversation of the group")
-			w.WriteHeader(http.StatusInternalServerError)
+			InternalServerError(w, err, "You can't add a user to the conversation of the group: ")
 			return
 		}
 	}
@@ -111,23 +105,21 @@ func (rt *_router) CreateGroup(w http.ResponseWriter, r *http.Request, ps httpro
 	// Create the welcome message
 	message, err = rt.db.CreateMessage(message)
 	if err != nil {
-		ctx.Logger.WithError(err).Error("server now can't create the welcome message")
-		w.WriteHeader(http.StatusInternalServerError)
+		InternalServerError(w, err, "Can't create the welcome message: ")
 		return
 	}
 
 	// Update last message of a conversation
 	err = rt.db.AddMessageToConv(message.MessageId, conversation.ConvId)
 	if err != nil {
-		ctx.Logger.WithError(err).Error("server now can't update the last message of the conversation")
-		w.WriteHeader(http.StatusInternalServerError)
+		InternalServerError(w, err, "Can't update the last message of the conversation: ")
 		return
 	}
 
 	// get users of the group
 	users, err := rt.db.GetUsersByGroupId(group.GroupId)
 	if err != nil {
-		http.Error(w, "Error taking the users of the group"+err.Error(), http.StatusBadRequest)
+		BadRequest(w, err, "Error taking the users of the group: ")
 		return
 	}
 
@@ -144,7 +136,7 @@ func (rt *_router) CreateGroup(w http.ResponseWriter, r *http.Request, ps httpro
 	for i := 0; i < len(users); i++ {
 		err = rt.db.AddUserToListOfReadersOfMess(message.MessageId, users[i].UserId, conversation.ConvId)
 		if err != nil {
-			http.Error(w, "Error adding the user to the list of readers of the message"+err.Error(), http.StatusBadRequest)
+			BadRequest(w, err, "Error adding the user to the list of readers of the message: ")
 			return
 		}
 	}
@@ -152,8 +144,7 @@ func (rt *_router) CreateGroup(w http.ResponseWriter, r *http.Request, ps httpro
 	// Response
 	w.Header().Set("content-type", "application/json")
 	if err := json.NewEncoder(w).Encode(response); err != nil {
-		ctx.Logger.WithError(err).Error("Error in encoding the response")
-		w.WriteHeader(http.StatusInternalServerError)
+		InternalServerError(w, err, "Error encoding the response: ")
 		return
 	}
 

@@ -16,7 +16,7 @@ func (rt *_router) SendMessage(w http.ResponseWriter, r *http.Request, ps httpro
 	// Check if the user request is valid
 	UserId, err := strconv.Atoi(ps.ByName("user"))
 	if err != nil {
-		http.Error(w, "Bad Request"+err.Error(), http.StatusBadRequest)
+		BadRequest(w, err, "Bad Request: ")
 		return
 	}
 
@@ -24,27 +24,27 @@ func (rt *_router) SendMessage(w http.ResponseWriter, r *http.Request, ps httpro
 
 	// Check if the user is authorized
 	if UserId != userID {
-		http.Error(w, "Forbidden", http.StatusForbidden)
+		Forbidden(w, err, "Forbidden: ")
 		return
 	}
 
 	// Get the conversation id
 	convId, err := strconv.Atoi(ps.ByName("conv_id"))
 	if err != nil {
-		http.Error(w, "Bad Request"+err.Error(), http.StatusBadRequest)
+		BadRequest(w, err, "Bad Request: ")
 		return
 	}
 
 	// Check if the user is in the conversation
 	if _, err := rt.db.GetUserByConv(convId, userID); err != nil {
-		http.Error(w, "User isn't in the conversation"+err.Error(), http.StatusBadRequest)
+		BadRequest(w, err, "User isn't in the conversation: ")
 		return
 	}
 
 	// Get the conversation from the id
 	conv, err := rt.db.GetConvById(convId)
 	if err != nil {
-		http.Error(w, "Conversation not found"+err.Error(), http.StatusNotFound)
+		http.Error(w, "Conversation not found: "+err.Error(), http.StatusNotFound)
 		return
 	}
 
@@ -53,7 +53,7 @@ func (rt *_router) SendMessage(w http.ResponseWriter, r *http.Request, ps httpro
 	// Check the weight of the message
 	err = r.ParseMultipartForm(5 << 20)
 	if err != nil {
-		http.Error(w, "The image is too big"+err.Error(), http.StatusBadRequest)
+		BadRequest(w, err, "The image is too big: ")
 		return
 	}
 	// Get the text of the message
@@ -64,7 +64,7 @@ func (rt *_router) SendMessage(w http.ResponseWriter, r *http.Request, ps httpro
 	if r.FormValue("messToReplyTo") != "" {
 		messToReplyTo, err := strconv.Atoi(r.FormValue("messToReplyTo"))
 		if err != nil {
-			http.Error(w, "Error taking the message id to reply to"+err.Error(), http.StatusBadRequest)
+			BadRequest(w, err, "Error taking the message id to reply to: ")
 			return
 		} else {
 			messIdToReplyTo = messToReplyTo
@@ -91,7 +91,7 @@ func (rt *_router) SendMessage(w http.ResponseWriter, r *http.Request, ps httpro
 
 	// Check if the message is empty
 	if mess.Text == "" && file == nil && fileGif == nil {
-		http.Error(w, "The message is empty!"+err.Error(), http.StatusBadRequest)
+		BadRequest(w, err, "The message is empty: ")
 		return
 	}
 
@@ -115,14 +115,14 @@ func (rt *_router) SendMessage(w http.ResponseWriter, r *http.Request, ps httpro
 	// Check if the request have a file, and if it has, encode it
 	if thereIsImage {
 		if _, err := file.Seek(0, io.SeekStart); err != nil {
-			http.Error(w, "Error seeking the image file"+err.Error(), http.StatusInternalServerError)
+			InternalServerError(w, err, "Error seeking the image file: ")
 			return
 		}
 
 		// Read the file
 		data, err := io.ReadAll(file) // In data we have the image file taked in the request
 		if err != nil {
-			http.Error(w, "Error reading the image file"+err.Error(), http.StatusInternalServerError)
+			InternalServerError(w, err, "Error reading the image file: ")
 			return
 		}
 
@@ -141,13 +141,13 @@ func (rt *_router) SendMessage(w http.ResponseWriter, r *http.Request, ps httpro
 	// Check if the request have a gif, and if it has, encode it
 	if thereIsGif {
 		if _, err := fileGif.Seek(0, io.SeekStart); err != nil {
-			http.Error(w, "Error seeking the gif file"+err.Error(), http.StatusInternalServerError)
+			InternalServerError(w, err, "Error seeking the gif file: ")
 			return
 		}
 		// Read the file
 		dataGif, err := io.ReadAll(fileGif) // In data we have the gif file taked in the request
 		if err != nil {
-			http.Error(w, "Error reading the gif file"+err.Error(), http.StatusInternalServerError)
+			InternalServerError(w, err, "Error reading the gif file: ")
 			return
 		}
 
@@ -179,7 +179,7 @@ func (rt *_router) SendMessage(w http.ResponseWriter, r *http.Request, ps httpro
 		// Get the message by the id
 		MessToreplyTo, err := rt.db.GetMessageById(messIdToReplyTo, conv.ConvId)
 		if err != nil {
-			http.Error(w, "Error taking the message by the id"+err.Error(), http.StatusBadRequest)
+			BadRequest(w, err, "Error taking the message by the id: ")
 			return
 		}
 		// Set the message query in the response
@@ -192,21 +192,21 @@ func (rt *_router) SendMessage(w http.ResponseWriter, r *http.Request, ps httpro
 	// Insert the message in the db
 	mess, err = rt.db.CreateMessage(mess)
 	if err != nil {
-		http.Error(w, "Error insert the message in the database"+err.Error(), http.StatusBadRequest)
+		BadRequest(w, err, "Error insert the message in the database: ")
 		return
 	}
 
 	// Update the last message
 	err = rt.db.AddMessageToConv(mess.MessageId, conv.ConvId)
 	if err != nil {
-		http.Error(w, "Error updating last message id"+err.Error(), http.StatusBadRequest)
+		BadRequest(w, err, "Error updating last message id: ")
 		return
 	}
 
 	// get users of the conversation
 	users, err := rt.db.GetUsersByConvId(conv.ConvId)
 	if err != nil {
-		http.Error(w, "Error taking the users of the conversation"+err.Error(), http.StatusBadRequest)
+		BadRequest(w, err, "Error taking the users of the conversation: ")
 		return
 	}
 	// Set the users that have read the message: all the users of the group, unless the sender
@@ -221,7 +221,7 @@ func (rt *_router) SendMessage(w http.ResponseWriter, r *http.Request, ps httpro
 	for i := 0; i < len(users); i++ {
 		err = rt.db.AddUserToListOfReadersOfMess(mess.MessageId, users[i].UserId, conv.ConvId)
 		if err != nil {
-			http.Error(w, "Error adding the user to the list of readers of the message"+err.Error(), http.StatusBadRequest)
+			BadRequest(w, err, "Error adding the user to the list of readers of the message: ")
 			return
 		}
 	}
@@ -232,7 +232,7 @@ func (rt *_router) SendMessage(w http.ResponseWriter, r *http.Request, ps httpro
 	// Response
 	w.Header().Set("content-type", "application/json")
 	if err := json.NewEncoder(w).Encode(response); err != nil {
-		http.Error(w, "Error encoding response"+err.Error(), http.StatusInternalServerError)
+		InternalServerError(w, err, "Error encoding response: ")
 		return
 	}
 

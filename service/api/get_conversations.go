@@ -15,7 +15,7 @@ func (rt *_router) GetConversations(w http.ResponseWriter, r *http.Request, ps h
 	// Check if the user request is valid
 	UserId, err := strconv.Atoi(ps.ByName("user"))
 	if err != nil {
-		http.Error(w, "Bad Request"+err.Error(), http.StatusBadRequest)
+		BadRequest(w, err, "Bad Request: ")
 		return
 	}
 
@@ -23,14 +23,14 @@ func (rt *_router) GetConversations(w http.ResponseWriter, r *http.Request, ps h
 
 	// Check if the user is authorized
 	if UserId != userID {
-		http.Error(w, "Forbidden", http.StatusForbidden)
+		Forbidden(w, err, "Forbidden: ")
 		return
 	}
 
 	// Get the conversations of the user
 	conversations, err := rt.db.GetConversationsByUserId(UserId)
 	if err != nil {
-		http.Error(w, "Internal Server Error"+err.Error(), http.StatusInternalServerError)
+		InternalServerError(w, err, "Internal server error: ")
 		return
 	}
 
@@ -54,13 +54,13 @@ func (rt *_router) GetConversations(w http.ResponseWriter, r *http.Request, ps h
 			// Get the user from the conversation
 			destUser, err := rt.db.GetOtherUserByConv(conv.ConvId, UserId)
 			if err != nil {
-				http.Error(w, "Bad Request"+err.Error(), http.StatusBadRequest)
+				BadRequest(w, err, "Bad Request: ")
 				return
 			}
 			// Get the user
 			user, err := rt.db.GetUserById(destUser.UserId)
 			if err != nil {
-				http.Error(w, "Bad Request"+err.Error(), http.StatusBadRequest)
+				BadRequest(w, err, "Bad Request: ")
 				return
 			}
 
@@ -71,7 +71,7 @@ func (rt *_router) GetConversations(w http.ResponseWriter, r *http.Request, ps h
 				// Get last message
 				message, err = rt.db.GetMessageById(conv.LastMessage, conv.ConvId)
 				if err != nil {
-					http.Error(w, "Bad Request"+err.Error(), http.StatusBadRequest)
+					BadRequest(w, err, "Bad Request: ")
 					return
 				}
 				// Get the dateTime of the last message
@@ -79,7 +79,7 @@ func (rt *_router) GetConversations(w http.ResponseWriter, r *http.Request, ps h
 				// Get the sender of the last message
 				senderUser, err = rt.db.GetUserById(message.SenderId)
 				if err != nil {
-					http.Error(w, "Bad Request"+err.Error(), http.StatusBadRequest)
+					BadRequest(w, err, "Bad Request: ")
 					return
 				}
 			}
@@ -95,7 +95,7 @@ func (rt *_router) GetConversations(w http.ResponseWriter, r *http.Request, ps h
 			// Get the group from the conversation
 			group, err := rt.db.GetGroupByGroupId(conv.GroupId)
 			if err != nil {
-				http.Error(w, "Bad Request"+err.Error(), http.StatusBadRequest)
+				BadRequest(w, err, "Bad Request: ")
 				return
 			}
 			message := structions.Message{}
@@ -105,7 +105,7 @@ func (rt *_router) GetConversations(w http.ResponseWriter, r *http.Request, ps h
 				// Get last message
 				message, err = rt.db.GetMessageById(conv.LastMessage, conv.ConvId)
 				if err != nil {
-					http.Error(w, "Bad Request"+err.Error(), http.StatusBadRequest)
+					BadRequest(w, err, "Bad Request: ")
 					return
 				}
 				// Get the dateTime of the last message
@@ -113,14 +113,14 @@ func (rt *_router) GetConversations(w http.ResponseWriter, r *http.Request, ps h
 				// Get the sender of the last message
 				senderUser, err = rt.db.GetUserById(message.SenderId)
 				if err != nil {
-					http.Error(w, "Bad Request"+err.Error(), http.StatusBadRequest)
+					BadRequest(w, err, "Bad Request: ")
 					return
 				}
 			}
 			// Get the users of the group
 			users, err := rt.db.GetUsersByGroupId(conv.GroupId)
 			if err != nil {
-				http.Error(w, "Bad Request"+err.Error(), http.StatusBadRequest)
+				BadRequest(w, err, "Bad Request: ")
 				return
 			}
 			// Delete yourself from the list of users
@@ -150,8 +150,7 @@ func (rt *_router) GetConversations(w http.ResponseWriter, r *http.Request, ps h
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
 	if err = json.NewEncoder(w).Encode(response); err != nil {
-		ctx.Logger.WithError(err).Error("Error encoding response")
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		InternalServerError(w, err, "Error encoding response: ")
 		return
 	}
 

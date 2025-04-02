@@ -16,7 +16,7 @@ func (rt *_router) ForwardMessage(w http.ResponseWriter, r *http.Request, ps htt
 	// Check if the user request is valid
 	UserId, err := strconv.Atoi(ps.ByName("user"))
 	if err != nil {
-		http.Error(w, "Bad Request"+err.Error(), http.StatusBadRequest)
+		BadRequest(w, err, "Bad Request: ")
 		return
 	}
 
@@ -24,27 +24,27 @@ func (rt *_router) ForwardMessage(w http.ResponseWriter, r *http.Request, ps htt
 
 	// Check if the user is authorized
 	if UserId != userID {
-		http.Error(w, "Forbidden", http.StatusForbidden)
+		Forbidden(w, err, "Forbidden: ")
 		return
 	}
 
 	// Get the conversation id
 	convId, err := strconv.Atoi(ps.ByName("conv_id"))
 	if err != nil {
-		http.Error(w, "Bad Request"+err.Error(), http.StatusBadRequest)
+		BadRequest(w, err, "Bad Request: ")
 		return
 	}
 
 	// Get the message id
 	messId, err := strconv.Atoi(ps.ByName("mess_id"))
 	if err != nil {
-		http.Error(w, "Bad Request"+err.Error(), http.StatusBadRequest)
+		BadRequest(w, err, "Bad Request: ")
 		return
 	}
 
 	// Check if the user is in the conversation
 	if _, err := rt.db.GetUserByConv(convId, UserId); err != nil {
-		http.Error(w, "User isn't in the conversation"+err.Error(), http.StatusBadRequest)
+		BadRequest(w, err, "User isn't in the conversation: ")
 		return
 	}
 
@@ -59,7 +59,7 @@ func (rt *_router) ForwardMessage(w http.ResponseWriter, r *http.Request, ps htt
 
 	// Get request
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-		http.Error(w, "Bad Request"+err.Error(), http.StatusBadRequest)
+		BadRequest(w, err, "Bad Request: ")
 		return
 	}
 
@@ -116,12 +116,12 @@ func (rt *_router) ForwardMessage(w http.ResponseWriter, r *http.Request, ps htt
 			// Get conv by group id
 			check2, AllConv, err := rt.db.GetConvByGroupId(request.DestConvId[i].DestGroup)
 			if err != nil {
-				http.Error(w, "Internal server error"+err.Error(), http.StatusInternalServerError)
+				InternalServerError(w, err, "Internal server error: ")
 				return
 			}
 			// If the group doesn't exist, return an error
 			if !check2 {
-				http.Error(w, "The group doesn't exist", http.StatusBadRequest)
+				BadRequest(w, err, "The group doesn't exist: ")
 				return
 			}
 
@@ -129,12 +129,12 @@ func (rt *_router) ForwardMessage(w http.ResponseWriter, r *http.Request, ps htt
 			Conver = AllConv.ConvId
 			check, err := rt.db.DoConversationExist(Conver)
 			if err != nil {
-				http.Error(w, "Internal server error"+err.Error(), http.StatusInternalServerError)
+				InternalServerError(w, err, "Internal server error: ")
 				return
 			}
 			// If the conversation doesn't exist, return an error
 			if !check {
-				http.Error(w, "The group doesn't exist", http.StatusBadRequest)
+				BadRequest(w, err, "The group doesn't exist: ")
 				return
 			}
 		}
@@ -146,37 +146,37 @@ func (rt *_router) ForwardMessage(w http.ResponseWriter, r *http.Request, ps htt
 			// Get conv by group id
 			check2, AllConv, err := rt.db.GetConvByGroupId(request.DestConvId[i].DestGroup)
 			if err != nil {
-				http.Error(w, "Internal server error"+err.Error(), http.StatusInternalServerError)
+				InternalServerError(w, err, "Internal server error: ")
 				return
 			}
 			// If the group doesn't exist, return an error
 			if !check2 {
-				http.Error(w, "The group doesn't exist", http.StatusBadRequest)
+				BadRequest(w, err, "The group doesn't exist: ")
 				return
 			}
 			// Check if the conversation exists
 			Conver = AllConv.ConvId
 			check, err := rt.db.DoConversationExist(Conver)
 			if err != nil {
-				http.Error(w, "Internal server error"+err.Error(), http.StatusInternalServerError)
+				InternalServerError(w, err, "Internal server error: ")
 				return
 			}
 			// If the conversation doesn't exist, return an error
 			if !check {
-				http.Error(w, "The group doesn't exist", http.StatusBadRequest)
+				BadRequest(w, err, "The group doesn't exist: ")
 				return
 			}
 		} else {
 			// Get destination by username
 			Dest, err := rt.db.GetUserById(request.DestConvId[i].DestUser)
 			if err != nil {
-				http.Error(w, "Internal server error"+err.Error(), http.StatusInternalServerError)
+				InternalServerError(w, err, "Internal server error: ")
 				return
 			}
 			// Get the conversation by destination id
 			Conver, err = rt.db.GetConversationByUsers(UserId, Dest.UserId)
 			if err != nil && !errors.Is(err, sql.ErrNoRows) {
-				http.Error(w, "Internal server error"+err.Error(), http.StatusInternalServerError)
+				InternalServerError(w, err, "Internal server error: ")
 				return
 			}
 			if errors.Is(err, sql.ErrNoRows) {
@@ -184,22 +184,19 @@ func (rt *_router) ForwardMessage(w http.ResponseWriter, r *http.Request, ps htt
 				conversation.GroupId = 0
 				conversation, err = rt.db.CreateConversation(conversation)
 				if err != nil {
-					ctx.Logger.WithError(err).Error("can't create the conversation of the private chat")
-					w.WriteHeader(http.StatusInternalServerError)
+					InternalServerError(w, err, "Can't create the conversation of the private chat: ")
 					return
 				}
 				// Add the user to the conversation
 				err = rt.db.AddUserToConv(UserId, conversation.ConvId)
 				if err != nil {
-					ctx.Logger.WithError(err).Error("you can't add a user to the conversation")
-					w.WriteHeader(http.StatusInternalServerError)
+					InternalServerError(w, err, "You can't add a user to the conversation: ")
 					return
 				}
 				// Add the destination user to the conversation
 				err = rt.db.AddUserToConv(Dest.UserId, conversation.ConvId)
 				if err != nil {
-					ctx.Logger.WithError(err).Error("you can't add a user to the conversation")
-					w.WriteHeader(http.StatusInternalServerError)
+					InternalServerError(w, err, "You can't add a user to the conversation: ")
 					return
 				}
 				Conver = conversation.ConvId
@@ -207,14 +204,14 @@ func (rt *_router) ForwardMessage(w http.ResponseWriter, r *http.Request, ps htt
 		}
 		// Check if the user is in the conversation/destionation
 		if _, err := rt.db.GetUserByConv(Conver, UserId); err != nil {
-			http.Error(w, "User isn't in the conversation"+err.Error(), http.StatusBadRequest)
+			BadRequest(w, err, "User isn't in the conversation: ")
 			return
 		}
 
 		// Get the message
 		message, err := rt.db.GetMessageById(messId, convId)
 		if err != nil {
-			http.Error(w, "Internal server error"+err.Error(), http.StatusInternalServerError)
+			InternalServerError(w, err, "Internal server error: ")
 			return
 		}
 
@@ -231,21 +228,21 @@ func (rt *_router) ForwardMessage(w http.ResponseWriter, r *http.Request, ps htt
 		// Send the message
 		mess, err = rt.db.CreateMessage(mess)
 		if err != nil {
-			http.Error(w, "Error insert the message in the database"+err.Error(), http.StatusBadRequest)
+			BadRequest(w, err, "Error insert the message in the database: ")
 			return
 		}
 
 		// Update the last message
 		err = rt.db.AddMessageToConv(mess.MessageId, Conver)
 		if err != nil {
-			http.Error(w, "Error updating last message id"+err.Error(), http.StatusBadRequest)
+			BadRequest(w, err, "Error updating last message id: ")
 			return
 		}
 
 		// get users of the conversation
 		users, err := rt.db.GetUsersByConvId(Conver)
 		if err != nil {
-			http.Error(w, "Error taking the users of the conversation"+err.Error(), http.StatusBadRequest)
+			BadRequest(w, err, "Error taking the users of the conversation: ")
 			return
 		}
 
@@ -262,7 +259,7 @@ func (rt *_router) ForwardMessage(w http.ResponseWriter, r *http.Request, ps htt
 		for i := 0; i < len(users); i++ {
 			err = rt.db.AddUserToListOfReadersOfMess(mess.MessageId, users[i].UserId, mess.ConvId)
 			if err != nil {
-				http.Error(w, "Error adding the user to the list of readers of the message"+err.Error(), http.StatusBadRequest)
+				BadRequest(w, err, "Error adding the user to the list of readers of the message: ")
 				return
 			}
 		}
@@ -272,7 +269,7 @@ func (rt *_router) ForwardMessage(w http.ResponseWriter, r *http.Request, ps htt
 	// Response
 	w.Header().Set("content-type", "application/json")
 	if err := json.NewEncoder(w).Encode(messages); err != nil {
-		http.Error(w, "Error encoding response"+err.Error(), http.StatusInternalServerError)
+		InternalServerError(w, err, "Error encoding response"+err.Error())
 		return
 	}
 

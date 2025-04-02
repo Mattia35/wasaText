@@ -19,6 +19,8 @@ export default {
             newGroupMembers: [],
             searchText: "",
             filteredUsers: [],
+            localMembers : [],
+            localMembersQuantity : 0,
         }
     },
     emits: ['to-home', 
@@ -28,11 +30,18 @@ export default {
             'update-photo', 
             'update-groupname', 
             'update-group-photo',
-            'update-group-members'],
+            'update-group-members',
+            'update-group-info'],
     watch: {
         searchText() {
             this.filterUsers();
-        }
+        },
+        members() {
+            this.localMembers = [...this.members];
+        },
+        membersQuantity() {
+            this.localMembersQuantity = this.membersQuantity;
+        },
 	},
     methods: {
         async addUsersToGroup(){
@@ -41,14 +50,14 @@ export default {
                 let response = await this.$axios.put(`/users/${sessionStorage.userID}/groups/${sessionStorage.groupID}`, {
 				users: this.newGroupMembers
                 }, {headers: {Authorization: `${sessionStorage.token}`}});
-				this.members = response.data;
-                this.membersQuantity = response.data.length + 1;
+                this.$emit('update-group-info', response.data);
+                this.localMembers = response.data;
+                this.localMembersQuantity = response.data.length + 1;
                 this.newGroupMembers = [];
                 this.showInputAddUsersToGroup = false;
-
                 let usernames = "";
-				for (let i = 0; i < this.members.length; i++) {
-					usernames += this.members[i].username + ", ";
+				for (let i = 0; i < this.localMembers.length; i++) {
+					usernames += this.localMembers[i].username + ", ";
 				}
 				usernames += "me";
 				sessionStorage.members = usernames;
@@ -84,7 +93,7 @@ export default {
 		},
 
         selectUser(user) {
-            if (this.members.some(member => member.userId === user.userId) || user.userId === Number(sessionStorage.userID)) {
+            if (this.localMembers.some(member => member.userId === user.userId) || user.userId === Number(sessionStorage.userID)) {
                 this.errorMsg = "User is already in the group";
             }
 			else if (!this.newGroupMembers.includes(user)) {
@@ -217,10 +226,10 @@ export default {
                         </button>
                     </div>
                     <div class="members-wrapper">
-                        <p class="members-count">{{ membersQuantity }} members</p>
+                        <p class="members-count">{{ localMembersQuantity }} members</p>
                         <div class="members-box">
                             <div class="members-bands">
-                                <div v-for="member in members" :key="member.userId" class="member">
+                                <div v-for="member in localMembers" :key="member.userId" class="member">
                                     <img :src="`data:image/jpg;base64,${member.userPhoto}`" alt="User photo"/>
                                     <h4>{{ member.username }}</h4>
                                 </div>

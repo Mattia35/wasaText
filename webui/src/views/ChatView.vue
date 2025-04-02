@@ -44,16 +44,21 @@ export default {
             'update-photo', 
             'update-groupname', 
             'update-group-photo',
-            'update-group-members'],
+            'update-group-members',
+            'update-group-info'],
     components: {
         groupInfo
     },
     watch: {
 		searchText() {
 			this.filterUsers();
-		}
+		},
 	},
     methods: {
+        updateData(data) {
+            this.infoGroupMembers = data;
+            this.infoGroupMembersQuantity = data.length + 1;
+        },
         async commentMessage(input) {
             for (let i = 0; i < this.messages.length; i++) {
                 if (this.messages[i].message.messageId === this.messId) {
@@ -63,7 +68,6 @@ export default {
                     }
                 }
             }
-            console.log(input);
             this.errorMsg3 = "";
             try {
                 let response = await this.$axios.put(`/users/${sessionStorage.userID}/conversations/${sessionStorage.convId}/messages/${this.messId}/comments`, {
@@ -436,11 +440,18 @@ export default {
         <div class="chat-body">
             <div class="chat-messages">
                 <div v-for="object in messages" @click="showOption(object)" :key="object.message.messageId" :class="{'message': true, 'user-message': object.sender.username === username, 'other-message': object.sender.username !== username}">
+                    <div v-if="object.message.replyId" class="replyToMessage">
+                        <span class="replyToUser" v-if="messages.find(mes => mes.message.messageId === object.message.replyId).sender.userId === userId">Me</span>
+                        <span class="replyToUser" v-else>{{ messages.find(mes => mes.message.messageId === object.message.replyId).sender.username }}</span>
+                        <img v-if="messages.find(mes => mes.message.messageId === object.message.replyId).message.photo" :src="`data:image/jpg;base64,${messages.find(mes => mes.message.messageId === object.message.replyId).message.photo}`" alt="Reply to message image" />
+                        <span v-if="messages.find(mes => mes.message.messageId === object.message.replyId).message.text">{{ messages.find(mes => mes.message.messageId === object.message.replyId).message.text }}</span>
+                        <img v-if="messages.find(mes => mes.message.messageId === object.message.replyId).message.gif" :src="`data:image/gif;base64,${messages.find(mes => mes.message.messageId === object.message.replyId).message.gif}`" alt="Reply to message gif" />
+                    </div>
                     <div v-if="groupId != 0 && object.sender.username !== username" class="message-header">
                         <h4 >{{ object.sender.username }}</h4>
                         <div class="forwarded-date">
                             <p class="only-date">{{ object.dateTime }}</p>
-                            <div v-if = "object.message.forward" class="forwarded-message">
+                            <div v-if="object.message.forward" class="forwarded-message">
                                 <svg class="feather"> 
                                     <use href="/feather-sprite-v4.29.0.svg#message-square" />
                                 </svg>
@@ -451,7 +462,7 @@ export default {
                     <div v-else class="message-header" >
                         <div class="forwarded-date">
                             <p class="only-date">{{ object.dateTime }}</p>
-                            <div v-if = "object.message.forward" class="forwarded-message">
+                            <div v-if="object.message.forward" class="forwarded-message">
                                 <svg class="feather"> 
                                     <use href="/feather-sprite-v4.29.0.svg#message-square" />
                                 </svg>
@@ -538,8 +549,8 @@ export default {
                     <p>No comments</p>
                 </div>
                 <div v-for="object in comments" :key="object.commentId" class="comment">
-                    <h4 v-if= "object.sender.userId !== userId">{{ object.sender.username }}:</h4>
-                    <h4 v-if= "object.sender.userId === userId">Me:</h4>
+                    <h4 v-if="object.sender.userId !== userId">{{ object.sender.username }}:</h4>
+                    <h4 v-if="object.sender.userId === userId">Me:</h4>
                     <p >{{ object.content }}</p>
                 </div>
             </div>
@@ -610,7 +621,7 @@ export default {
         </div>
     </div>
 
-    <groupInfo :members="infoGroupMembers" :membersQuantity="infoGroupMembersQuantity" :show1="showGroupInfo" @close="groupInfo" @update-groupname="updateGroupname" @update-group-photo="updateGroupPhoto" @update-group-members="updateGroupMembers"></groupInfo>
+    <groupInfo :members="infoGroupMembers" :membersQuantity="infoGroupMembersQuantity" @update-group-info="updateData" :show1="showGroupInfo" @close="groupInfo" @update-groupname="updateGroupname" @update-group-photo="updateGroupPhoto" @update-group-members="updateGroupMembers" />
 </template>
 
 <style>
@@ -713,6 +724,31 @@ export default {
     margin-bottom: 10px;
     cursor: pointer;
 }
+
+.replyToMessage {
+    display: flex;
+    flex-direction: column;
+    margin: 5px 0;
+    padding: 5px 10px;
+    border-radius: 5px;
+    background: white;
+    border-left: 3px solid #a6a6a6;
+    font-size: 12px;
+    color: #6c757d;
+    
+}
+
+.replyToUser {
+    color: #007bff;
+}
+
+.replyToMessage img {
+    width: 50px;
+    height: 50px;
+    border-radius: 5px;
+    object-fit: cover;
+} 
+
 .message.user-message {
     align-self: flex-end; 
     background-color: #007bff; 
@@ -720,7 +756,7 @@ export default {
 }
 .message.other-message {
     align-self: flex-start;
-    background-color: #f0f0f0;  
+    background-color: #e0e0e0;  
     color: black; 
 }
 .message-header {

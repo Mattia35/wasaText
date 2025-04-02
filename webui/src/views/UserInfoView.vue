@@ -18,7 +18,8 @@ export default {
             'update-photo', 
             'update-groupname', 
             'update-group-photo',
-            'update-group-members'],
+            'update-group-members',
+            'update-group-info'],
     components: {
         setUsername
     },
@@ -112,7 +113,7 @@ export default {
     <div v-if="showBigPhoto" @click="showPhoto" class="modal-mask" >
       <img :src="`data:image/jpg;base64,${photo}`" alt="User photo" class="BigImage">
     </div>
-    <setUsername :show="showSetUsernameModal" @close="usernameModify" @update-username="handleUpdateUsername"></setUsername>
+    <setUsername :show="showSetUsernameModal" @close="usernameModify" @update-username="handleUpdateUsername" />
   </template>
 
   <style>

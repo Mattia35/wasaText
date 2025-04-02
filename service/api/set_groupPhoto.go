@@ -18,7 +18,7 @@ func (rt *_router) SetGroupPhoto(w http.ResponseWriter, r *http.Request, ps http
 	// Check if the user request is valid
 	UserId, err := strconv.Atoi(ps.ByName("user"))
 	if err != nil {
-		http.Error(w, "Bad Request"+err.Error(), http.StatusBadRequest)
+		BadRequest(w, err, "Bad Request: ")
 		return
 	}
 
@@ -26,14 +26,14 @@ func (rt *_router) SetGroupPhoto(w http.ResponseWriter, r *http.Request, ps http
 
 	// Check if the user is authorized
 	if UserId != userID {
-		http.Error(w, "Forbidden", http.StatusForbidden)
+		Forbidden(w, err, "Forbidden: ")
 		return
 	}
 
 	// Get the groupId
 	groupId, err := strconv.Atoi(ps.ByName("group_id"))
 	if err != nil {
-		http.Error(w, "Bad Request"+err.Error(), http.StatusBadRequest)
+		BadRequest(w, err, "Bad Request: ")
 		return
 	}
 
@@ -41,7 +41,7 @@ func (rt *_router) SetGroupPhoto(w http.ResponseWriter, r *http.Request, ps http
 	check, err := rt.db.IsUserInGroup(UserId, groupId)
 
 	if err != nil {
-		http.Error(w, "Internal server error"+err.Error(), http.StatusInternalServerError)
+		InternalServerError(w, err, "Internal server error: ")
 		return
 	}
 	if !check {
@@ -52,21 +52,21 @@ func (rt *_router) SetGroupPhoto(w http.ResponseWriter, r *http.Request, ps http
 	// Check the weight of the photo
 	err = r.ParseMultipartForm(5 << 20)
 	if err != nil {
-		http.Error(w, "The image is too big"+err.Error(), http.StatusBadRequest)
+		BadRequest(w, err, "The image is too big: ")
 		return
 	}
 
 	// Get the file
 	file, _, err := r.FormFile("image")
 	if err != nil {
-		http.Error(w, "Error getting the image file"+err.Error(), http.StatusBadRequest)
+		BadRequest(w, err, "Error getting the image file: ")
 		return
 	}
 	defer file.Close()
 
 	// Check if there is a photo in the request
 	if file == nil {
-		http.Error(w, "The photo isn't in the request!", http.StatusBadRequest)
+		BadRequest(w, err, "The photo isn't in the request: ")
 		return
 	}
 
@@ -74,7 +74,7 @@ func (rt *_router) SetGroupPhoto(w http.ResponseWriter, r *http.Request, ps http
 	// Read the file
 	data, err := io.ReadAll(file) // In data we have the image file taked in the request
 	if err != nil {
-		http.Error(w, "Error reading the image file"+err.Error(), http.StatusInternalServerError)
+		InternalServerError(w, err, "Error reading the image file: ")
 		return
 	}
 
@@ -88,7 +88,7 @@ func (rt *_router) SetGroupPhoto(w http.ResponseWriter, r *http.Request, ps http
 	// Decode the file in image
 	img, err := jpeg.Decode(bytes.NewReader(data))
 	if err != nil {
-		http.Error(w, "Error decoding the file"+err.Error(), http.StatusInternalServerError)
+		InternalServerError(w, err, "Error decoding the file: ")
 		return
 	}
 
@@ -99,7 +99,7 @@ func (rt *_router) SetGroupPhoto(w http.ResponseWriter, r *http.Request, ps http
 	var buf bytes.Buffer
 	err = jpeg.Encode(&buf, newImg, nil)
 	if err != nil {
-		http.Error(w, "Error encoding resized image: "+err.Error(), http.StatusInternalServerError)
+		InternalServerError(w, err, "Error encoding resized image: ")
 		return
 	}
 
@@ -109,7 +109,7 @@ func (rt *_router) SetGroupPhoto(w http.ResponseWriter, r *http.Request, ps http
 	// Set the photo in the record
 	err = rt.db.SetGroupPhoto(groupId, response)
 	if err != nil {
-		http.Error(w, "Internal Server Error"+err.Error(), http.StatusInternalServerError)
+		InternalServerError(w, err, "Internal server error: ")
 		return
 	}
 
@@ -125,7 +125,7 @@ func (rt *_router) SetGroupPhoto(w http.ResponseWriter, r *http.Request, ps http
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("content-type", "plain/text")
 	if err := json.NewEncoder(w).Encode(res); err != nil {
-		http.Error(w, "Error encoding the response"+err.Error(), http.StatusInternalServerError)
+		InternalServerError(w, err, "Error encoding the response: ")
 		return
 	}
 }

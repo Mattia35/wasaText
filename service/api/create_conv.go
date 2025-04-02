@@ -14,7 +14,7 @@ func (rt *_router) CreateConv(w http.ResponseWriter, r *http.Request, ps httprou
 	// Check if the user request is valid
 	UserId, err := strconv.Atoi(ps.ByName("user"))
 	if err != nil {
-		http.Error(w, "Bad Request"+err.Error(), http.StatusBadRequest)
+		BadRequest(w, err, "Bad Request: ")
 		return
 	}
 
@@ -22,7 +22,7 @@ func (rt *_router) CreateConv(w http.ResponseWriter, r *http.Request, ps httprou
 
 	// Check if the user is authorized
 	if UserId != userID {
-		http.Error(w, "Forbidden", http.StatusForbidden)
+		Forbidden(w, err, "Forbidden: ")
 		return
 	}
 
@@ -36,14 +36,14 @@ func (rt *_router) CreateConv(w http.ResponseWriter, r *http.Request, ps httprou
 	var message structions.Message
 	err = json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
-		http.Error(w, "Bad Request"+err.Error(), http.StatusBadRequest)
+		BadRequest(w, err, "Bad Request: ")
 		return
 	}
 
 	// Check if the destination user exists
 	Dest, err := rt.db.GetUserByName(request.User)
 	if err != nil {
-		http.Error(w, "Bad Request"+err.Error(), http.StatusBadRequest)
+		BadRequest(w, err, "Bad Request: ")
 		return
 	}
 
@@ -52,14 +52,14 @@ func (rt *_router) CreateConv(w http.ResponseWriter, r *http.Request, ps httprou
 
 	// Check if the text in the request is empty
 	if request.Text == "" {
-		http.Error(w, "Bad Request", http.StatusBadRequest)
+		BadRequest(w, err, "Bad Request: ")
 		return
 	}
 
 	// Check if the conversation already exists
 	convNumb, err := rt.db.GetConvByUsers(UserId, DestId)
 	if convNumb != 1 || err != nil {
-		http.Error(w, "Bad Request"+err.Error(), http.StatusBadRequest)
+		BadRequest(w, err, "Bad Request: ")
 		return
 	}
 
@@ -68,8 +68,7 @@ func (rt *_router) CreateConv(w http.ResponseWriter, r *http.Request, ps httprou
 	conversation.GroupId = 0
 	conversation, err = rt.db.CreateConversation(conversation)
 	if err != nil {
-		ctx.Logger.WithError(err).Error("can't create the conversation of the private chat")
-		w.WriteHeader(http.StatusInternalServerError)
+		BadRequest(w, err, "Can't create the conversation of the private chat: ")
 		return
 	}
 
@@ -81,38 +80,34 @@ func (rt *_router) CreateConv(w http.ResponseWriter, r *http.Request, ps httprou
 	// Create the message
 	message, err = rt.db.CreateMessage(message)
 	if err != nil {
-		ctx.Logger.WithError(err).Error("server now can't create the welcome message")
-		w.WriteHeader(http.StatusInternalServerError)
+		BadRequest(w, err, "Can't create the welcome message: ")
 		return
 	}
 
 	// Update last message of a conversation
 	err = rt.db.AddMessageToConv(message.MessageId, conversation.ConvId)
 	if err != nil {
-		ctx.Logger.WithError(err).Error("server now can't update the last message of the conversation")
-		w.WriteHeader(http.StatusInternalServerError)
+		InternalServerError(w, err, "Can't update the last message of the conversation: ")
 		return
 	}
 	conversation.LastMessage = message.MessageId
 	// Add the user to the conversation
 	err = rt.db.AddUserToConv(UserId, conversation.ConvId)
 	if err != nil {
-		ctx.Logger.WithError(err).Error("you can't add a user to the conversation")
-		w.WriteHeader(http.StatusInternalServerError)
+		InternalServerError(w, err, "You can't add a user to the conversation: ")
 		return
 	}
 	// Add the destination user to the conversation
 	err = rt.db.AddUserToConv(DestId, conversation.ConvId)
 	if err != nil {
-		ctx.Logger.WithError(err).Error("you can't add a user to the conversation")
-		w.WriteHeader(http.StatusInternalServerError)
+		InternalServerError(w, err, "You can't add a user to the conversation: ")
 		return
 	}
 
 	// Add the destination user to the list of readers of the message
 	err = rt.db.AddUserToListOfReadersOfMess(message.MessageId, DestId, conversation.ConvId)
 	if err != nil {
-		http.Error(w, "Error adding the user to the list of readers of the message"+err.Error(), http.StatusBadRequest)
+		InternalServerError(w, err, "Error adding the user to the list of readers of the message: ")
 		return
 	}
 
@@ -120,8 +115,7 @@ func (rt *_router) CreateConv(w http.ResponseWriter, r *http.Request, ps httprou
 	// Response
 	w.Header().Set("content-type", "application/json")
 	if err := json.NewEncoder(w).Encode(conversation); err != nil {
-		ctx.Logger.WithError(err).Error("Error in encoding the conversation")
-		w.WriteHeader(http.StatusInternalServerError)
+		InternalServerError(w, err, "Error encoding the conversation: ")
 		return
 	}
 

@@ -19,7 +19,8 @@ export default {
           'update-photo', 
           'update-groupname', 
           'update-group-photo',
-          'update-group-members'],
+          'update-group-members',
+          'update-group-info'],
   methods: {
     // Funzione per effettuare il login
     async doLogin() {
@@ -74,13 +75,22 @@ export default {
 
 <style>
 .login-container {
+  position: fixed; 
+  top: 0;
+  left: 0;
+  width: 100vw; 
+  height: 100vh; 
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 50vh;
+  background: rgba(0, 0, 0, 0.5); 
 }
 
 .login-container form {
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
   display: flex;
   flex-direction: column;
   align-items: center;

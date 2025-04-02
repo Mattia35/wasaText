@@ -21,7 +21,8 @@ export default {
             'close', 
             'update-photo', 
             'update-groupname', 
-            'update-group-photo'],
+            'update-group-photo',
+            'update-group-info'],
     methods: {
         closeModal() {
             this.$emit('close');

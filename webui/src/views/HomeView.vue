@@ -7,7 +7,8 @@ export default {
 			'update-photo', 
 			'update-groupname', 
 			'update-group-photo',
-			'update-group-members'],
+			'update-group-members',
+			'update-group-info'],
 	data: function() {
 		return {
 			username: sessionStorage.username,
@@ -62,12 +63,12 @@ export default {
 					this.errorMsg2 = "A conversation with this user already exists!";
 					return;
 				}
-				sessionStorage.recipientName = this.groupMembers[0].username;
-				sessionStorage.recipientPhoto = this.groupMembers[0].userPhoto;
-				sessionStorage.members = "";
-				sessionStorage.groupID = 0;
-				sessionStorage.chatUserID = this.groupMembers[0].userId;
 			}
+			sessionStorage.recipientName = this.groupMembers[0].username;
+			sessionStorage.recipientPhoto = this.groupMembers[0].userPhoto;
+			sessionStorage.members = "";
+			sessionStorage.groupID = 0;
+			sessionStorage.chatUserID = this.groupMembers[0].userId;
 			this.$router.push(`/temporary-chat/${this.groupMembers[0].username}`);
 		},
 		async getConversations() {
@@ -107,13 +108,15 @@ export default {
 		selectUser(user) {
 			if (user.userId === Number(sessionStorage.userID)) {
 				this.errorMsg2 = "It's not necessary that you select yourself!";
+				this.filteredUsers = [];
+				return;
 			}
 			else if (!this.groupMembers.some(member => member.userId === user.userId)) {
 				this.groupMembers.push(user);
 			}
 			this.searchText = "";  
-			this.filteredUsers = [];  
-			},
+			this.filteredUsers = [];
+		},
 
 		CreationConv(){
 			if (this.showCreationGroup) {
@@ -185,14 +188,6 @@ export default {
 			<h1 class="h2">Home page</h1>
 			<div class="btn-toolbar mb-2 mb-md-0">
 				<div class="btn-group me-2">
-					<button type="button" class="btn btn-sm btn-outline-secondary" @click="refresh">
-						Refresh
-					</button>
-					<button type="button" class="btn btn-sm btn-outline-secondary" @click="exportList">
-						Export
-					</button>
-				</div>
-				<div class="btn-group me-2">
 					<button type="button" class="btn btn-sm btn-outline-primary" @click="CreationConv">New</button>
 				</div>
 			</div>
@@ -205,7 +200,7 @@ export default {
 					<div class="conversation-name-and-last-message">
 						<p class="conversation-name" v-if="conversation.conversation.group != 0">{{ conversation.group.username }}</p>
 						<p class="conversation-name" v-if="conversation.conversation.group == 0">{{ conversation.user.username }}</p>
-						<p v-if="conversation.message.photo && conversation.message.messageId != 0" class="last-message">
+						<div v-if="conversation.message.photo && conversation.message.messageId != 0" class="last-message">
 							<p v-if="conversation.senderUser.username === username" class="sender-last-message"><strong>me: </strong></p>
 							<p v-if="conversation.senderUser.username !== username" class="sender-last-message"><strong>{{ conversation.senderUser.username }}: </strong></p>
 						
@@ -213,17 +208,17 @@ export default {
 								<use href="/feather-sprite-v4.29.0.svg#image" />
 							</svg>
 							image
-						</p>
-						<p v-else-if="conversation.message.text && conversation.senderUser.username === username && conversation.message.messageId != 0" class="last-message"><strong>me: </strong>{{ conversation.message.text }}</p>
-						<p v-else-if="conversation.message.text && conversation.senderUser.username !== username && conversation.message.messageId != 0" class="last-message"><strong>{{ conversation.senderUser.username }}: </strong>{{ conversation.message.text }}</p>
-						<p v-else-if="conversation.message.messageId != 0" class="last-message">
-							<p v-if="conversation.senderUser.username === username" class="sender-last-message "><strong>me: </strong></p>
+						</div>
+						<div v-else-if="conversation.message.text && conversation.senderUser.username === username && conversation.message.messageId != 0" class="last-message"><strong>me: </strong>{{ conversation.message.text }}</div>
+						<div v-else-if="conversation.message.text && conversation.senderUser.username !== username && conversation.message.messageId != 0" class="last-message"><strong>{{ conversation.senderUser.username }}: </strong>{{ conversation.message.text }}</div>
+						<div v-else-if="conversation.message.messageId != 0" class="last-message">
+							<p v-if="conversation.senderUser.username === username" class="sender-last-message"><strong>me: </strong></p>
 							<p v-if="conversation.senderUser.username !== username" class="sender-last-message"><strong>{{ conversation.senderUser.username }}: </strong></p>
 							<svg class="feather"> 
 								<use href="/feather-sprite-v4.29.0.svg#image" />
 							</svg>
 							gif
-						</p>
+						</div>
 					</div>
 				</div>
 				<p v-if="conversation.message.messageId != 0" class="conversation-datetime">{{ conversation.dateTime }}</p>
@@ -493,6 +488,7 @@ li button {
   font-size: 14px;
   color: #666;
   margin: 0;
+  max-height: 20px;
 
 }
 

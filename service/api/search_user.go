@@ -21,13 +21,13 @@ func (rt *_router) SearchUsers(w http.ResponseWriter, r *http.Request, ps httpro
 	validUser := regexp.MustCompile(`^[a-z0-9]{1,15}$`)
 	check := validUser.MatchString(query)
 	if !check {
-		http.Error(w, "Bad Request", http.StatusBadRequest)
+		BadRequest(w, nil, "Bad Request: ")
 		return
 	}
 	// Get the users
 	users, err := rt.db.SearchUsers(query)
 	if err != nil {
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		InternalServerError(w, err, "Internal Server Error: ")
 		return
 	}
 	if len(users) == 0 {
@@ -42,8 +42,7 @@ func (rt *_router) SearchUsers(w http.ResponseWriter, r *http.Request, ps httpro
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("content-type", "application/json")
 	if err := json.NewEncoder(w).Encode(users); err != nil {
-		ctx.Logger.WithError(err).Error("Error in encoding the response")
-		w.WriteHeader(http.StatusInternalServerError)
+		InternalServerError(w, err, "Error in encoding the response: ")
 		return
 	}
 }

@@ -14,7 +14,7 @@ func (rt *_router) UsernameModify(w http.ResponseWriter, r *http.Request, ps htt
 	// Check if the user request is valid
 	UserId, err := strconv.Atoi(ps.ByName("user"))
 	if err != nil {
-		http.Error(w, "Bad Request"+err.Error(), http.StatusBadRequest)
+		BadRequest(w, err, "Bad Request: ")
 		return
 	}
 
@@ -22,14 +22,14 @@ func (rt *_router) UsernameModify(w http.ResponseWriter, r *http.Request, ps htt
 
 	// Check if the user is authorized
 	if UserId != userID {
-		http.Error(w, "Forbidden", http.StatusForbidden)
+		Forbidden(w, err, "Forbidden: ")
 		return
 	}
 
 	var user structions.User
 	// Check if the user makes a bad request
 	if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
-		http.Error(w, "Bad Request"+err.Error(), http.StatusBadRequest)
+		BadRequest(w, err, "Bad Request: ")
 		return
 	}
 
@@ -49,7 +49,7 @@ func (rt *_router) UsernameModify(w http.ResponseWriter, r *http.Request, ps htt
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("content-type", "application/json")
 	if err := json.NewEncoder(w).Encode(user); err != nil {
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		InternalServerError(w, err, "Can't encode the response: ")
 		return
 	}
 }

@@ -18,8 +18,17 @@ export default {
 			'update-photo', 
 			'update-groupname', 
 			'update-group-photo',
-			'update-group-members'],
+			'update-group-members',
+			'update-group-info'],
 	methods:{
+		logOut(){
+			sessionStorage.clear();
+			this.isLogged = false;
+			this.showUserInfo = false;
+			this.username = "";
+			this.photo = "";
+			this.$router.push("/");
+		},
 
 		handleHomeView() {
 			this.showUserInfo = true;
@@ -30,12 +39,6 @@ export default {
 			this.showUserInfo = true;
 			this.username = sessionStorage.username;
 			this.photo = sessionStorage.photo;
-		},
-
-		logout(){
-			sessionStorage.clear();
-			this.isLogged = false;
-			this.$router.push("/");
 		},
 
 		goToUserInfo(){
@@ -67,41 +70,15 @@ export default {
 
 	<div class="container-fluid">
 		<div class="row">
-			<nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse">
+			<nav v-if="isLogged" id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse">
 				<div class="position-sticky pt-3 sidebar-sticky">
 					<h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted text-uppercase">
 						<span>General</span>
 					</h6>
 					<ul class="nav flex-column">
-						<li class="nav-item">
-							<RouterLink to="/" class="nav-link">
-								<svg class="feather"><use href="/feather-sprite-v4.29.0.svg#home"/></svg>
-								Home
-							</RouterLink>
-						</li>
-						<li class="nav-item">
-							<RouterLink to="/link1" class="nav-link">
-								<svg class="feather"><use href="/feather-sprite-v4.29.0.svg#layout"/></svg>
-								Menu item 1
-							</RouterLink>
-						</li>
-						<li class="nav-item">
-							<RouterLink to="/link2" class="nav-link">
-								<svg class="feather"><use href="/feather-sprite-v4.29.0.svg#key"/></svg>
-								Menu item 2
-							</RouterLink>
-						</li>
-					</ul>
-
-					<h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted text-uppercase">
-						<span>Secondary menu</span>
-					</h6>
-					<ul class="nav flex-column">
-						<li class="nav-item">
-							<RouterLink :to="'/some/' + 'variable_here' + '/path'" class="nav-link">
-								<svg class="feather"><use href="/feather-sprite-v4.29.0.svg#file-text"/></svg>
-								Item 1
-							</RouterLink>
+						<li @click="logOut" class="nav-item">
+							<svg class="feather"><use href="/feather-sprite-v4.29.0.svg#log-out"/></svg>
+							Logout
 						</li>
 					</ul>
 				</div>
@@ -120,6 +97,15 @@ export default {
 </template>
 
 <style>
+.nav-item {
+	display: flex;
+	justify-content: flex-start;
+}
+
+.nav-item svg {
+	margin-right: 10px;
+}
+
 .user-info {
 	position: fixed;
 	bottom: 10px;

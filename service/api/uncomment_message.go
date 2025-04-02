@@ -15,7 +15,7 @@ func (rt *_router) UncommentMessage(w http.ResponseWriter, r *http.Request, ps h
 	// Check if the user request is valid
 	UserId, err := strconv.Atoi(ps.ByName("user"))
 	if err != nil {
-		http.Error(w, "Bad Request"+err.Error(), http.StatusBadRequest)
+		BadRequest(w, err, "Bad Request: ")
 		return
 	}
 
@@ -23,47 +23,47 @@ func (rt *_router) UncommentMessage(w http.ResponseWriter, r *http.Request, ps h
 
 	// Check if the user is authorized
 	if UserId != userID {
-		http.Error(w, "Forbidden", http.StatusForbidden)
+		Forbidden(w, err, "Forbidden: ")
 		return
 	}
 
 	// Get the conversation id
 	convId, err := strconv.Atoi(ps.ByName("conv_id"))
 	if err != nil {
-		http.Error(w, "Bad Request"+err.Error(), http.StatusBadRequest)
+		BadRequest(w, err, "Bad Request: ")
 		return
 	}
 
 	// Check if the user is in the conversation
 	if _, err := rt.db.GetUserByConv(convId, UserId); err != nil {
-		http.Error(w, "User isn't in the conversation"+err.Error(), http.StatusBadRequest)
+		BadRequest(w, err, "User isn't in the conversation: ")
 		return
 	}
 
 	// Get the message id
 	messId, err := strconv.Atoi(ps.ByName("mess_id"))
 	if err != nil {
-		http.Error(w, "Bad Request"+err.Error(), http.StatusBadRequest)
+		BadRequest(w, err, "Bad Request: ")
 		return
 	}
 
 	// Check if the message is in the conversation
 	_, err = rt.db.GetMessageById(messId, convId)
 	if err != nil {
-		http.Error(w, "Message isn't in the conversation"+err.Error(), http.StatusBadRequest)
+		BadRequest(w, err, "Message isn't in the conversation: ")
 		return
 	}
 	// Get the comment id
 	commId, err := strconv.Atoi(ps.ByName("comm_id"))
 	if err != nil {
-		http.Error(w, "Bad Request"+err.Error(), http.StatusBadRequest)
+		BadRequest(w, err, "Bad Request: ")
 		return
 	}
 
 	// Check if the comment is in the conversation
 	check, err := rt.db.IsCommentInConv(commId, messId, convId)
 	if err != nil {
-		http.Error(w, "Internal Server Error"+err.Error(), http.StatusInternalServerError)
+		InternalServerError(w, err, "Internal server error: ")
 		return
 	}
 	if !check {
@@ -78,7 +78,7 @@ func (rt *_router) UncommentMessage(w http.ResponseWriter, r *http.Request, ps h
 			http.Error(w, "Comment not found", http.StatusNotFound)
 			return
 		}
-		http.Error(w, "Comment isn't in the conversation"+err.Error(), http.StatusBadRequest)
+		BadRequest(w, err, "Comment isn't in the conversation: ")
 		return
 	}
 
@@ -91,7 +91,7 @@ func (rt *_router) UncommentMessage(w http.ResponseWriter, r *http.Request, ps h
 	// Remove the message
 	err = rt.db.RemoveComment(commId, messId, convId)
 	if err != nil {
-		http.Error(w, "Internal Server Error"+err.Error(), http.StatusInternalServerError)
+		InternalServerError(w, err, "Internal server error: ")
 		return
 	}
 
@@ -100,7 +100,7 @@ func (rt *_router) UncommentMessage(w http.ResponseWriter, r *http.Request, ps h
 	// Send the response
 	w.Header().Set("content-type", "application/json")
 	if err := json.NewEncoder(w).Encode("comment has been successfully deleted from list comments!"); err != nil {
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		InternalServerError(w, err, "Can't encode the response: ")
 		return
 	}
 }

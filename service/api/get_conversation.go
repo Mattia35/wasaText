@@ -15,7 +15,7 @@ func (rt *_router) GetConversation(w http.ResponseWriter, r *http.Request, ps ht
 	// Check if the user request is valid
 	UserId, err := strconv.Atoi(ps.ByName("user"))
 	if err != nil {
-		http.Error(w, "Bad Request"+err.Error(), http.StatusBadRequest)
+		BadRequest(w, err, "Bad Request: ")
 		return
 	}
 
@@ -23,21 +23,21 @@ func (rt *_router) GetConversation(w http.ResponseWriter, r *http.Request, ps ht
 
 	// Check if the user is authorized
 	if UserId != userID {
-		http.Error(w, "Forbidden", http.StatusForbidden)
+		Forbidden(w, err, "Forbidden: ")
 		return
 	}
 
 	// Get the group id
 	convId, err := strconv.Atoi(ps.ByName("conv_id"))
 	if err != nil {
-		http.Error(w, "Bad Request"+err.Error(), http.StatusBadRequest)
+		BadRequest(w, err, "Bad Request: ")
 		return
 	}
 
 	// Check if the user is in the conversation
 	check, err := rt.db.IsUserInConv(UserId, convId)
 	if err != nil {
-		http.Error(w, "Internal server error A"+err.Error(), http.StatusInternalServerError)
+		InternalServerError(w, err, "Internal server error: ")
 		return
 	}
 	if !check {
@@ -48,7 +48,7 @@ func (rt *_router) GetConversation(w http.ResponseWriter, r *http.Request, ps ht
 	// Get messages
 	messages, err := rt.db.GetMessagesByConvId(convId)
 	if err != nil {
-		http.Error(w, "Internal server error B"+err.Error(), http.StatusInternalServerError)
+		InternalServerError(w, err, "Internal server error: ")
 		return
 	}
 
@@ -67,7 +67,7 @@ func (rt *_router) GetConversation(w http.ResponseWriter, r *http.Request, ps ht
 			// Control if the user has already read the message
 			check, err := rt.db.CheckIfUserHasReadMess(messages[i].MessageId, UserId)
 			if err != nil {
-				http.Error(w, "Internal server error C"+err.Error(), http.StatusInternalServerError)
+				InternalServerError(w, err, "Internal server error: ")
 				return
 			}
 			if check {
@@ -76,20 +76,20 @@ func (rt *_router) GetConversation(w http.ResponseWriter, r *http.Request, ps ht
 			// Add the user to the list of users that have read the message
 			err = rt.db.AddUserToListOfAlreadyReadersOfMess(messages[i].MessageId, UserId, convId)
 			if err != nil {
-				http.Error(w, "Internal server error D"+err.Error(), http.StatusInternalServerError)
+				InternalServerError(w, err, "Internal server error: ")
 				return
 			}
 			// Check if all the users have read the message
 			check, err = rt.db.CheckAllUsersHaveReadMess(messages[i].MessageId)
 			if err != nil {
-				http.Error(w, "Internal server error E"+err.Error(), http.StatusInternalServerError)
+				InternalServerError(w, err, "Internal server error: ")
 				return
 			}
 			if check {
 				// Update the message status
 				err = rt.db.UpdateMessageStatus(messages[i].MessageId)
 				if err != nil {
-					http.Error(w, "Internal server error F"+err.Error(), http.StatusInternalServerError)
+					InternalServerError(w, err, "Internal server error: ")
 					return
 				}
 				// Get the updated message
@@ -123,7 +123,7 @@ func (rt *_router) GetConversation(w http.ResponseWriter, r *http.Request, ps ht
 		// Get the sender
 		sender, err := rt.db.GetUserById(messages[i].SenderId)
 		if err != nil {
-			http.Error(w, "Internal server error G"+err.Error(), http.StatusInternalServerError)
+			InternalServerError(w, err, "Internal server error: ")
 			return
 		}
 
@@ -132,19 +132,19 @@ func (rt *_router) GetConversation(w http.ResponseWriter, r *http.Request, ps ht
 		// Get the comments
 		comments, err := rt.db.GetCommentsByMessId(messages[i].MessageId, convId)
 		if err != nil {
-			http.Error(w, "Internal server error H"+err.Error(), http.StatusInternalServerError)
+			InternalServerError(w, err, "Internal server error: ")
 			return
 		}
 
 		// Save the commments in commentsData
 		for j := 0; j < len(comments); j++ {
 			// Get the sender
-			sender, err := rt.db.GetUserById(comments[j].SenderId)
+			senderComment, err := rt.db.GetUserById(comments[j].SenderId)
 			if err != nil {
-				http.Error(w, "Internal server error I"+err.Error(), http.StatusInternalServerError)
+				InternalServerError(w, err, "Internal server error: ")
 				return
 			}
-			commentsData = append(commentsData, CommentData{comments[j].CommentId, comments[j].MessageId, comments[j].Content, sender, comments[j].ConvId})
+			commentsData = append(commentsData, CommentData{comments[j].CommentId, comments[j].MessageId, comments[j].Content, senderComment, comments[j].ConvId})
 		}
 
 		// Get the date and time
@@ -162,8 +162,7 @@ func (rt *_router) GetConversation(w http.ResponseWriter, r *http.Request, ps ht
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("content-type", "application/json")
 	if err := json.NewEncoder(w).Encode(response); err != nil {
-		ctx.Logger.WithError(err).Error("Error in encoding the response")
-		w.WriteHeader(http.StatusInternalServerError)
+		InternalServerError(w, err, "Error encoding response: ")
 		return
 	}
 }

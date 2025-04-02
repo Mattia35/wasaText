@@ -13,7 +13,7 @@ func (rt *_router) LeaveGroup(w http.ResponseWriter, r *http.Request, ps httprou
 	// Check if the user request is valid
 	UserId, err := strconv.Atoi(ps.ByName("user"))
 	if err != nil {
-		http.Error(w, "Bad Request"+err.Error(), http.StatusBadRequest)
+		BadRequest(w, err, "Bad Request: ")
 		return
 	}
 
@@ -21,14 +21,14 @@ func (rt *_router) LeaveGroup(w http.ResponseWriter, r *http.Request, ps httprou
 
 	// Check if the user is authorized
 	if UserId != userID {
-		http.Error(w, "Forbidden", http.StatusForbidden)
+		Forbidden(w, err, "Forbidden: ")
 		return
 	}
 
 	// Get the group id
 	groupId, err := strconv.Atoi(ps.ByName("group_id"))
 	if err != nil {
-		http.Error(w, "Bad Request"+err.Error(), http.StatusBadRequest)
+		BadRequest(w, err, "Bad Request: ")
 		return
 	}
 
@@ -36,7 +36,7 @@ func (rt *_router) LeaveGroup(w http.ResponseWriter, r *http.Request, ps httprou
 	check, err := rt.db.IsUserInGroup(UserId, groupId)
 
 	if err != nil {
-		http.Error(w, "Internal server error"+err.Error(), http.StatusInternalServerError)
+		InternalServerError(w, err, "Internal server error: ")
 		return
 	}
 	if !check {
@@ -47,40 +47,40 @@ func (rt *_router) LeaveGroup(w http.ResponseWriter, r *http.Request, ps httprou
 	// Remove the user from the group
 	err = rt.db.RemoveUserFromGroup(UserId, groupId)
 	if err != nil {
-		http.Error(w, "Internal Server Error"+err.Error(), http.StatusInternalServerError)
+		InternalServerError(w, err, "Internal server error: ")
 		return
 	}
 	// Select the conversation of the group
 	_, conv, err := rt.db.GetConvByGroupId(groupId)
 	if err != nil {
-		http.Error(w, "Internal Server Error"+err.Error(), http.StatusInternalServerError)
+		InternalServerError(w, err, "Internal server error: ")
 		return
 	}
 	convId := conv.ConvId
 	// Remove the user from the conversation
 	err = rt.db.RemoveUserFromConv(UserId, convId)
 	if err != nil {
-		http.Error(w, "Internal Server Error"+err.Error(), http.StatusInternalServerError)
+		InternalServerError(w, err, "Internal server error: ")
 		return
 	}
 
 	// control if the user is the last user in the group
 	users, err := rt.db.GetUsersByGroupId(groupId)
 	if err != nil {
-		http.Error(w, "Internal Server Error"+err.Error(), http.StatusInternalServerError)
+		InternalServerError(w, err, "Internal server error: ")
 		return
 	}
 	if len(users) == 0 {
 		// remove the group
 		err = rt.db.RemoveGroup(groupId)
 		if err != nil {
-			http.Error(w, "Internal Server Error"+err.Error(), http.StatusInternalServerError)
+			InternalServerError(w, err, "Internal server error: ")
 			return
 		}
 		// remove the conversation
 		err = rt.db.RemoveConv(convId)
 		if err != nil {
-			http.Error(w, "Internal Server Error"+err.Error(), http.StatusInternalServerError)
+			InternalServerError(w, err, "Internal server error: ")
 			return
 		}
 	}
@@ -89,7 +89,7 @@ func (rt *_router) LeaveGroup(w http.ResponseWriter, r *http.Request, ps httprou
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("content-type", "application/json")
 	if err := json.NewEncoder(w).Encode("user has been successfully removed from group!"); err != nil {
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		InternalServerError(w, err, "Error encoding response: ")
 		return
 	}
 }
