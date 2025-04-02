@@ -60,6 +60,21 @@ components:
                 minLength: 1
                 maxLength: 30
                 example: "Server error, try again later!"
+    NotFoundError:
+      description: server error
+      content:
+        application/json:
+          schema:
+            description: '404 error'
+            type: object
+            properties:
+              error_message:
+                description: text of error message
+                type: string
+                pattern: '^.*?$'
+                minLength: 1
+                maxLength: 30
+                example: "The object is not found!"
   schemas:
     GeneralId:
       type: object
@@ -72,16 +87,15 @@ components:
           maximum: 10000
     Username:
       type: object
-      description: username or name of private chat conversation
+      description: username
       properties:
         name:
           type: string
           description: | 
-            text that represents the username or name of private 
-            chat conversation
-          pattern: '^.*?$'
+            text that represents the username 
+          pattern: '^[a-z0-9]{1,15}$'
           minLength: 3
-          maxLength: 16
+          maxLength: 15
       required: [name]
     Message:
       type: object
@@ -96,77 +110,49 @@ components:
           pattern: '^\\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\\d|3[01])T([01]\\d|2[0-3]):[0-5]\\d$'
           minLength: 16
           maxLength: 16
-        text_or_photo:
-          description: content of the message, that could be a text or a photo
-          oneOf:
-            - type: string
-              description: message contains a text
-              pattern: '^.*?$'
-              minLength: 1
-              maxLength: 9999
-            - type: string
-              description: message contains a photo
-              format: byte
-              pattern: '^.*?$'
-              minLength: 1
-              maxLength: 7000000
-        sender_or_status:
-          oneOf:
-            - $ref: '#/components/schemas/GeneralId'
-            - type: boolean
-              description: |
-                boolean value that represents the checkmarks status 
-                of the message
-        comments:
-          type: object
-          description: list of message comments
-          properties:
-            array_of_comments:
-              type: array
-              description: array that represents the list of message comments 
-              items:
-                $ref: '#/components/schemas/Comment'
-              minItems: 0
-              maxItems: 50
-          required: [array_of_comments]
-    Comment:
-      type: object
-      description: single message comment of the list
-      properties:
-        id:
-          $ref: '#/components/schemas/GeneralId'
-        date_time:
+        text:
+          description: text of the message
           type: string
-          description: date and time of the comment
-          format: date-time
-          pattern: '^\\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\\d|3[01])T([01]\\d|2[0-3]):[0-5]\\d$'
-          minLength: 16
-          maxLength: 16
-        emoji:
-          description: content of the comment, that is a emoji
-          type: string
-          enum:
-            - "ok"
-            - "love"
-            - "wow"
-            - "ahah"
-            - "sad"
-            - "angry"
-            - "celebrate"
-        sender:
+          pattern: '^.*?$'
+          minLength: 1
+          maxLength: 9999
+        status:
+          type: boolean
+          description: status of the message
+        conv_id:
           $ref: '#/components/schemas/GeneralId'
-      required: [id, date_time, emoji, sender]
+        sender_id:
+          $ref: '#/components/schemas/GeneralId'
+        photo:
+          type: string
+          description: photo of the message
+          format: byte
+          pattern: '^.*?$'
+          minLength: 1
+          maxLength: 7000000
+        gif:
+          type: string
+          description: gif of the message
+          format: byte
+          pattern: '^.*?$'
+          minLength: 1
+          maxLength: 7000000
+        forward:
+          type: boolean
+          description: define if is a forwarded message
+        reply_id:
+          $ref: '#/components/schemas/GeneralId'
     Conversation:
       type: object
       description: conversation of a private chat or a group
       properties:
-        id:
+        conv_id:
           $ref: '#/components/schemas/GeneralId'
-        group_id_or_privatechat_id:
+        group_id:
           $ref: '#/components/schemas/GeneralId'
-        message:
+        last_message:
           $ref: '#/components/schemas/Message'
-      required: [id, group_id_or_privatechat_id, message]
+      required: [conv_id, group_id, last_message]
     Group:
       type: object
       description: group with other users
@@ -179,13 +165,6 @@ components:
           pattern: '^.*?$'
           minLength: 1
           maxLength: 20
-        users:
-          description: ids array that represents the list of group users
-          type: array
-          items:
-            $ref: '#/components/schemas/GeneralId'
-          minItems: 1
-          maxItems: 50
         photo:
           type: string
           description: group photo
@@ -193,13 +172,29 @@ components:
           format: byte
           minLength: 1
           maxLength: 7000000
-      required: [id, group_name, users]
+      required: [id, group_name]
+    User:
+      type: object
+      description: general user
+      properties:
+        id:
+          $ref: '#/components/schemas/GeneralId'
+        user_name:
+          $ref: '#/components/schemas/Username'
+        photo:
+          type: string
+          description: group photo
+          pattern: '^.*?$'
+          format: byte
+          minLength: 1
+          maxLength: 7000000
+      required: [id, user_name]
       
 tags:
   - name: login
     description: User authentication operations.
-  - name: creation of a private chat/group conversation
-    description: Operations for creating private or group chats.
+  - name: creation of a private chat
+    description: Operations for creating private chats.
   - name: getting all conversations
     description: Retrieve all user conversations.
   - name: getting messages from a conversation
@@ -228,6 +223,8 @@ tags:
     description: Update the username of a user.
   - name: photo modify
     description: Modify the user's profile photo.
+  - name: search users
+    description: Search of all users who have the username starting with an input string
     
 paths:
   /session:
@@ -274,6 +271,37 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
   
+  /users:
+    description: area where is possibile to search users
+    get:
+      security:
+        - bearerAuth: []
+      tags: ["search users"]
+      operationId: searchUsers
+      summary: get a list of users
+      description: get a list of users who have the username starting with an input string
+      responses:
+        '200':
+          description: |
+            an array of object, each one contains a name, a message,
+            a array users and a photo
+          content:
+            application/json:
+              schema:
+                type: object
+                description: '200 response message'
+                properties: 
+                  conversations:
+                    description: conversations array in output
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
   
   /users/{user}/conversations:
     description: user area where he can read and create chats
@@ -306,7 +334,32 @@ paths:
                     description: conversations array in output
                     type: array
                     items:
-                      $ref: '#/components/schemas/Conversation'
+                      type: object
+                      description: object with all data of a conversation
+                      properties: 
+                        conversation:
+                          $ref: '#/components/schemas/Conversation'
+                        user:
+                          $ref: '#/components/schemas/User'
+                        group:
+                          $ref: '#/components/schemas/Group'
+                        group_users:
+                          description: members of the group
+                          type: array
+                          items:
+                            $ref: '#/components/schemas/User'
+                        message:
+                          $ref: '#/components/schemas/Message'
+                        sender_user:
+                          $ref: '#/components/schemas/User'
+                        date_time:
+                          type: string
+                          description: date and time of the last message
+                          format: date-time
+                          pattern: '^\\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\\d|3[01])T([01]\\d|2[0-3]):[0-5]\\d$'
+                          minLength: 16
+                          maxLength: 16
+                      required: [conversation, user, group, group_users, message, sender_user, date_time]
                     minItems: 0
                     maxItems: 10000
                 required: [conversations]
@@ -316,40 +369,35 @@ paths:
           $ref: '#/components/responses/ForbiddenError'
         '500':
           $ref: '#/components/responses/InternalServerError'
-          
-  /users/{user}/conversations/{receiver_user_id}:
-    description: | 
-      user area where he can do an interaction with a chat,
-      identified by the id
-    parameters:
-      - name: user
-        description: user id
-        in: path
-        required: true
-        schema:
-          $ref: '#/components/schemas/GeneralId'
-      - name: receiver_user_id
-        description: receiver id (group or user)
-        in: path
-        required: true
-        schema:
-          $ref: '#/components/schemas/GeneralId'
     put:
       security:
         - bearerAuth: []
-      tags: ["creation of a private chat/group conversation"]
+      tags: ["creation of a private chat"]
       summary: New chat or group conversation is created
       description: |
         User creates a new chat with a other user or a new group with some users
       operationId: conversationCreation
       requestBody:
-        description: choose between group or private chat, represented by a id
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Message'
+              type: object
+              description: object that contains a username and a text
+              properties:
+                username:
+                  type: string
+                  description: text that represents the user name
+                  pattern: '^[a-z0-9]{1,15}$'
+                  minLength: 1
+                  maxLength: 15
+                text:
+                  description: text of the message
+                  type: string
+                  pattern: '^.*?$'
+                  minLength: 1
+                  maxLength: 9999
       responses:
-        '200':
+        '201':
           description: New chat creaction action successful
           content:
             application/json:
@@ -361,6 +409,24 @@ paths:
           $ref: '#/components/responses/UnauthorizedError'
         '500':
           $ref: '#/components/responses/InternalServerError'
+          
+  /users/{user}/conversations/{conv_id}:
+    description: | 
+      user area where he can do an interaction with a chat,
+      identified by the id
+    parameters:
+      - name: user
+        description: user id
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/GeneralId'
+      - name: conv_id
+        description: receiver id (group or user)
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/GeneralId'
     get:
       security:
         - bearerAuth: []
@@ -385,8 +451,8 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
   
-  /users/{user}/conversations/{receiver_user_id}/messages:
-    description: message area, where user can forward it
+  /users/{user}/conversations/{conv_id}/messages:
+    description: messages area, where user can send text, photo and gif
     parameters:
       - name: user
         description: user id
@@ -394,8 +460,8 @@ paths:
         required: true
         schema:
           $ref: '#/components/schemas/GeneralId'
-      - name: receiver_user_id
-        description: receiver id (group or user)
+      - name: conv_id
+        description: conv id 
         in: path
         required: true
         schema:
@@ -410,17 +476,33 @@ paths:
         User sends a message to the other user/s
       requestBody:
         content:
-          application/json:
+          multipart/form-data::
             schema:
               type: object
-              description: object that contains a message text in input
+              description: object that contains message input data
               properties:
                 text:
-                  description: message text in input
                   type: string
+                  description: text of the message
                   pattern: '^.*?$'
                   minLength: 1
                   maxLength: 9999
+                messToReplyTo:
+                  $ref: '#/components/schemas/GeneralId'
+                image:
+                  description: new image in input
+                  type: string
+                  pattern: '^.*?$'
+                  format: byte
+                  minLength: 1
+                  maxLength: 7000000
+                gif:
+                  description: new gif in input
+                  type: string
+                  pattern: '^.*?$'
+                  format: byte
+                  minLength: 1
+                  maxLength: 7000000
         required: true
       responses:
         '201':
@@ -428,7 +510,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Message'
+                type: object
+                description: object that contains message input data
+                properties:
+                  mess:
+                    $ref: '#/components/schemas/Message'
+                  mess_to_reply:
+                    $ref: '#/components/schemas/Message'
         '400':
           $ref: '#/components/responses/InvalidRequestError'
         '401':
@@ -438,8 +526,8 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
   
-  /users/{user}/conversations/{receiver_user_id}/messages/{mess_id}:
-    description: message area, where user can forward it
+  /users/{user}/conversations/{conv_id}/messages/{mess_id}:
+    description: message area, where user can forward or delete it
     parameters:
       - name: user
         description: user id
@@ -447,7 +535,7 @@ paths:
         required: true
         schema:
           $ref: '#/components/schemas/GeneralId'
-      - name: receiver_user_id
+      - name: conv_id
         description: receiver id (group or user)
         in: path
         required: true
@@ -471,19 +559,33 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/GeneralId'
+              type: object
+              properties:
+                destination:
+                  description: conversations array in input
+                  type: array
+                  items:
+                    type: object
+                    description: object with all data of a conversation
+                    properties: 
+                      user_id:
+                        $ref: '#/components/schemas/GeneralId'
+                      group_id:
+                        $ref: '#/components/schemas/GeneralId'
       responses:
         '201':
           description: message forwarding action successful
           content:
-            plain/text:
+            application/json:
               schema:
-                description: '201 response message'
-                type: string
-                pattern: '^.*?$'
-                minLength: 1
-                maxLength: 30
-                example: "Forwarding accepted!"
+                type: object
+                properties:
+                  messages:
+                    description: '201 response message'
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Message'
+
         '400':
           $ref: '#/components/responses/InvalidRequestError'
         '401':
@@ -520,7 +622,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /users/{user}/conversations/{receiver_user_id}/messages/{mess_id}/comments:
+  /users/{user}/conversations/{conv_id}/messages/{mess_id}/comments:
     description: comments area, where user can comment a message
     parameters:
       - name: user
@@ -529,7 +631,7 @@ paths:
         required: true
         schema:
           $ref: '#/components/schemas/GeneralId'
-      - name: receiver_user_id
+      - name: conv_id
         description: receiver id (group or user)
         in: path
         required: true
@@ -560,32 +662,80 @@ paths:
                   description: emoji in input
                   type: string
                   enum:
-                    - "ok"
-                    - "love"
-                    - "wow"
-                    - "ahah"
-                    - "sad"
-                    - "angry"
-                    - "celebrate"
+                    - "😀"
+                    - "😂"
+                    - "😍"
+                    - "😎"
+                    - "😭"
+                    - "😡"
+                    - "🎉"
+                    - "❤️"
+                    - "👍"
+                    - "🔥"
         required: true
       responses:
         '200':
           description: Comment modify action successful
           content:
-            plain/text:
+            application/json:
               schema:
-                description: '200 response message'
-                type: string
-                pattern: '^.*?$'
-                minLength: 1
-                maxLength: 30
-                example: "Modify accepted!"
+                type: object
+                description: object that contains comment output data
+                properties:
+                  id:
+                    $ref: '#/components/schemas/GeneralId'
+                  message_id:
+                    $ref: '#/components/schemas/GeneralId'
+                  emoji:
+                    description: content of the comment, that is a emoji
+                    type: string
+                    enum:
+                      - "😀"
+                      - "😂"
+                      - "😍"
+                      - "😎"
+                      - "😭"
+                      - "😡"
+                      - "🎉"
+                      - "❤️"
+                      - "👍"
+                      - "🔥"
+                  sender:
+                    $ref: '#/components/schemas/User'
+                  conv_id:
+                    $ref: '#/components/schemas/GeneralId'
+                required: [id, message_id, emoji, sender, conv_id]
         '201':
           description: New comment sending action successful
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Comment'
+                type: object
+                description: object that contains comment output data
+                properties:
+                  id:
+                    $ref: '#/components/schemas/GeneralId'
+                  message_id:
+                    $ref: '#/components/schemas/GeneralId'
+                  emoji:
+                    description: content of the comment, that is a emoji
+                    type: string
+                    enum:
+                      - "😀"
+                      - "😂"
+                      - "😍"
+                      - "😎"
+                      - "😭"
+                      - "😡"
+                      - "🎉"
+                      - "❤️"
+                      - "👍"
+                      - "🔥"
+                  sender:
+                    $ref: '#/components/schemas/User'
+                  conv_id:
+                    $ref: '#/components/schemas/GeneralId'
+                required: [id, message_id, emoji, sender, conv_id]
         '400':
           $ref: '#/components/responses/InvalidRequestError'
         '401':
@@ -596,7 +746,7 @@ paths:
           $ref: '#/components/responses/InternalServerError'
       
   
-  /users/{user}/conversations/{receiver_user_id}/messages/{mess_id}/comments/{comm_id}:
+  /users/{user}/conversations/{conv_id}/messages/{mess_id}/comments/{comm_id}:
     description: comment area, where user can delete it
     parameters:
       - name: user
@@ -605,7 +755,7 @@ paths:
         required: true
         schema:
           $ref: '#/components/schemas/GeneralId'
-      - name: receiver_user_id
+      - name: conv_id
         description: receiver id (group or user)
         in: path
         required: true
@@ -677,13 +827,13 @@ paths:
           application/json:
             schema:
               type: object
-              description: object that contains an array of user ids in input
+              description: object that contains an array of user and groupname in input
               properties:
                 users:
                   description: array of user ids in input 
                   type: array
                   items:
-                    $ref: '#/components/schemas/GeneralId'
+                    $ref: '#/components/schemas/User'
                   minItems: 1
                   maxItems: 50
                 group_name:
@@ -692,13 +842,6 @@ paths:
                   pattern: '^.*?$'
                   minLength: 1
                   maxLength: 20
-                photo:
-                  description: group photo in input
-                  type: string
-                  pattern: '^.*?$'
-                  format: byte
-                  minLength: 1
-                  maxLength: 7000000
               required: [group_name, users]
         required: true
       responses:
@@ -707,7 +850,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Group'
+                type: object
+                description: object that contains group data
+                properties:
+                  group:
+                    $ref: '#/components/schemas/Group'
+                  conv_id:
+                    $ref: '#/components/schemas/GeneralId'
         '400':
           $ref: '#/components/responses/InvalidRequestError'
         '401':
@@ -738,18 +887,18 @@ paths:
       summary: Adds users to group
       description: User Adds users to group, defined by the groupId
       requestBody:
-        description: User gives an array of user ids in input
+        description: User gives an array of user in input
         content:
           application/json:
             schema:
               type: object
-              description: object that contains an array of user ids in input
+              description: object that contains an array of user in input
               properties:
-                user_ids:
+                users:
                   description: user ids in input
                   type: array
                   items:
-                    $ref: '#/components/schemas/GeneralId'
+                    $ref: '#/components/schemas/User'
                   minItems: 1
                   maxItems: 49
         required: true
@@ -757,14 +906,18 @@ paths:
         '200':
           description: group users list addition action successful
           content:
-            plain/text:
+            application/json:
               schema:
-                description: '200 response message'
-                type: string
-                pattern: '^.*?$'
-                minLength: 1
-                maxLength: 30
-                example: "Addition accepted!" 
+                type: object
+                description: object that contains an array of group members
+                properties:
+                  members:
+                    description: members of the group, unless you
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/User'
+                    minItems: 1
+                    maxItems: 49
         '400':
           $ref: '#/components/responses/InvalidRequestError'
         '401':
@@ -841,16 +994,20 @@ paths:
         required: true
       responses:
         '200':
-          description: Group photo modify action successful
+          description: group photo modify action successful
           content:
-            plain/text:
+            application/json:
               schema:
-                description: '200 response message'
-                type: string
-                pattern: '^.*?$'
-                minLength: 1
-                maxLength: 30
-                example: "Modify accepted!" 
+                type: object
+                description: object that contains the photo
+                properties:
+                  photo:
+                    description: new photo
+                    type: string
+                    pattern: '^.*?$'
+                    format: byte
+                    minLength: 1
+                    maxLength: 7000000
         '400':
           $ref: '#/components/responses/InvalidRequestError'
         '401':
@@ -899,14 +1056,9 @@ paths:
         '200':
           description: Group name modify action successful
           content:
-            plain/text:
-              schema:
-                description: '200 response message'
-                type: string
-                pattern: '^.*?$'
-                minLength: 1
-                maxLength: 30
-                example: "Modify accepted!" 
+            application/json:
+              schema: 
+                $ref: '#/components/schemas/Group'
         '400':
           $ref: '#/components/responses/InvalidRequestError'
         '401':
@@ -941,14 +1093,9 @@ paths:
         '200':
           description: Username modify action successful
           content:
-            plain/text:
-              schema:
-                description: '200 response message'
-                type: string
-                pattern: '^.*?$'
-                minLength: 1
-                maxLength: 30
-                example: "Modify accepted!" 
+            application/json:
+              schema: 
+                $ref: '#/components/schemas/User'
         '400':
           $ref: '#/components/responses/InvalidRequestError'
         '401':
@@ -991,14 +1138,18 @@ paths:
         '200':
           description: photo modify action successful
           content:
-            plain/text:
+            application/json:
               schema:
-                description: '200 response message'
-                type: string
-                pattern: '^.*?$'
-                minLength: 1
-                maxLength: 30
-                example: "Modify accepted!" 
+                type: object
+                description: object that contains the photo
+                properties:
+                  photo:
+                    description: new photo
+                    type: string
+                    pattern: '^.*?$'
+                    format: byte
+                    minLength: 1
+                    maxLength: 7000000
         '400':
           $ref: '#/components/responses/InvalidRequestError'
         '401':
