@@ -94,7 +94,7 @@ components:
           description: | 
             text that represents the username 
           pattern: '^[a-z0-9]{1,15}$'
-          minLength: 3
+          minLength: 1
           maxLength: 15
       required: [name]
     Message:
@@ -291,15 +291,19 @@ paths:
                 type: object
                 description: '200 response message'
                 properties: 
-                  conversations:
+                  filtered_users:
                     description: conversations array in output
                     type: array
                     items:
                       $ref: '#/components/schemas/User'
+                    minItems: 0
+                    maxItems: 10000
         '401':
           $ref: '#/components/responses/UnauthorizedError'
         '403':
           $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
         '500':
           $ref: '#/components/responses/InternalServerError'
   
@@ -348,6 +352,8 @@ paths:
                           type: array
                           items:
                             $ref: '#/components/schemas/User'
+                          minItems: 1
+                          maxItems: 10000
                         message:
                           $ref: '#/components/schemas/Message'
                         sender_user:
@@ -385,11 +391,7 @@ paths:
               description: object that contains a username and a text
               properties:
                 username:
-                  type: string
-                  description: text that represents the user name
-                  pattern: '^[a-z0-9]{1,15}$'
-                  minLength: 1
-                  maxLength: 15
+                  $ref: '#/components/schemas/Username'
                 text:
                   description: text of the message
                   type: string
@@ -400,9 +402,14 @@ paths:
         '201':
           description: New chat creaction action successful
           content:
-            application/json:
+            plain/text:
               schema: 
-                $ref: '#/components/schemas/Conversation'
+                description: '201 response message'
+                type: string
+                pattern: '^.*?$'
+                minLength: 1
+                maxLength: 45
+                example: 'Forwarding accepted!'
         '400':
           $ref: '#/components/responses/InvalidRequestError'
         '401':
@@ -523,6 +530,8 @@ paths:
           $ref: '#/components/responses/UnauthorizedError'
         '403':
           $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
         '500':
           $ref: '#/components/responses/InternalServerError'
   
@@ -560,6 +569,7 @@ paths:
           application/json:
             schema:
               type: object
+              description: object that contains array of conversations data
               properties:
                 destination:
                   description: conversations array in input
@@ -572,12 +582,15 @@ paths:
                         $ref: '#/components/schemas/GeneralId'
                       group_id:
                         $ref: '#/components/schemas/GeneralId'
+                  minItems: 0
+                  maxItems: 10000
       responses:
         '201':
           description: message forwarding action successful
           content:
             application/json:
               schema:
+                description: '201 response message'
                 type: object
                 properties:
                   messages:
@@ -585,7 +598,8 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/Message'
-
+                    minItems: 0
+                    maxItems: 10000
         '400':
           $ref: '#/components/responses/InvalidRequestError'
         '401':
@@ -800,6 +814,8 @@ paths:
           $ref: '#/components/responses/UnauthorizedError'
         '403':
           $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
         '500':
           $ref: '#/components/responses/InternalServerError'
           
@@ -835,7 +851,7 @@ paths:
                   items:
                     $ref: '#/components/schemas/User'
                   minItems: 1
-                  maxItems: 50
+                  maxItems: 49
                 group_name:
                   description: group name in input
                   type: string

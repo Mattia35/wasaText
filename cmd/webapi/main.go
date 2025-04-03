@@ -28,17 +28,18 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"progetto.wasa/service/api"
-	"progetto.wasa/service/database"
-	"progetto.wasa/service/globaltime"
-	"github.com/ardanlabs/conf"
-	_ "github.com/mattn/go-sqlite3"
-	"github.com/sirupsen/logrus"
 	"math/rand"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
+
+	"github.com/ardanlabs/conf"
+	_ "github.com/mattn/go-sqlite3"
+	"github.com/sirupsen/logrus"
+	"progetto.wasa/service/api"
+	"progetto.wasa/service/database"
+	"progetto.wasa/service/globaltime"
 )
 
 // main is the program entry point. The only purpose of this function is to call run() and set the exit code if there is

@@ -37,7 +37,7 @@ export default {
                 let response = await this.$axios.put(`/users/${sessionStorage.userID}/username`, {
                 username: this.username,
                 }, {headers: {Authorization: `${sessionStorage.token}`}});
-
+                
                 // Salva i dati dell'utente nella sessionStorage
                 sessionStorage.username = response.data.username;
 
@@ -47,7 +47,11 @@ export default {
                 // Chiudi il modale
                 this.closeModal();
             } catch (e) {
-                this.errorMsg = e.toString();
+                if (e.response && e.response.status === 400) {
+                    this.errorMsg = "Username already taken, please choose another one";
+                } else {
+                    this.errorMsg = "An error occurred, please try again.";
+                }
             };
         }
     }

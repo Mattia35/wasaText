@@ -65,7 +65,7 @@ func (rt *_router) GetConversations(w http.ResponseWriter, r *http.Request, ps h
 			}
 
 			message := structions.Message{}
-			dateTime := ""
+			var dateTime string
 			senderUser := structions.User{}
 			if conv.LastMessage != 0 {
 				// Get last message
@@ -99,7 +99,7 @@ func (rt *_router) GetConversations(w http.ResponseWriter, r *http.Request, ps h
 				return
 			}
 			message := structions.Message{}
-			dateTime := ""
+			var dateTime string
 			senderUser := structions.User{}
 			if conv.LastMessage != 0 {
 				// Get last message

@@ -59,7 +59,7 @@ func (rt *_router) SendMessage(w http.ResponseWriter, r *http.Request, ps httpro
 	// Get the text of the message
 	mess.Text = r.FormValue("text")
 
-	messIdToReplyTo := 0
+	var messIdToReplyTo int
 	// Try to get the message to reply to. If it fails, it means that the message is not a reply, so continue
 	if r.FormValue("messToReplyTo") != "" {
 		messToReplyTo, err := strconv.Atoi(r.FormValue("messToReplyTo"))
@@ -96,9 +96,9 @@ func (rt *_router) SendMessage(w http.ResponseWriter, r *http.Request, ps httpro
 	}
 
 	// Check if the message has a gif, a text, a text with an image or an image
-	thereIsText := false
-	thereIsGif := false
-	thereIsImage := false
+	var thereIsText bool
+	var thereIsGif bool
+	var thereIsImage bool
 	if mess.Text != "" {
 		thereIsText = true
 	}

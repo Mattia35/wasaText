@@ -107,7 +107,7 @@ func (rt *_router) ForwardMessage(w http.ResponseWriter, r *http.Request, ps htt
 		}
 	}
 	request = newRequest
-	Conver := 0
+	var Conver int
 	var messages []structions.Message
 
 	// For each destination, check if it is a group or a user

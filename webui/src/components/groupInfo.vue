@@ -86,7 +86,11 @@ export default {
 					}
 					this.filteredUsers = response.data;
 				} catch (e) {
-					this.errorMsg = e.toString();
+					if (e.response && e.response.status === 404) {
+                        this.errorMsg = "User not found";
+                    } else {
+                        this.errorMsg = "An error occurred, please try again.";
+                    }
 					this.filteredUsers = [];
 				}
 			}

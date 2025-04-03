@@ -99,8 +99,11 @@ export default {
 					}
 					this.filteredUsers = response.data;
 				} catch (e) {
-					this.errorMsg2 = e.toString();
-					this.filteredUsers = [];
+					if (e.response && e.response.status === 404) {
+						this.errorMsg2 = "User not found";
+					} else {
+						this.errorMsg2 = "An error occurred, please try again.";
+					}
 				}
 			}
 		},

@@ -448,7 +448,7 @@ export default {
                         <img v-if="messages.find(mes => mes.message.messageId === object.message.replyId).message.gif" :src="`data:image/gif;base64,${messages.find(mes => mes.message.messageId === object.message.replyId).message.gif}`" alt="Reply to message gif" />
                     </div>
                     <div v-if="groupId != 0 && object.sender.username !== username" class="message-header">
-                        <h4 >{{ object.sender.username }}</h4>
+                        <h4>{{ object.sender.username }}</h4>
                         <div class="forwarded-date">
                             <p class="only-date">{{ object.dateTime }}</p>
                             <div v-if="object.message.forward" class="forwarded-message">
@@ -478,7 +478,7 @@ export default {
                         <p>{{ object.message.text }}</p>
                     </div>
                     <div v-if="object.message.gif" class="message-body">
-                        <img class="gif":src="`data:image/gif;base64,${object.message.gif}`" alt="Message gif" />
+                        <img class="gif" :src="`data:image/gif;base64,${object.message.gif}`" alt="Message gif" />
                     </div>
                     <div v-if="object.message.text && !object.message.photo" class="message-body">
                         <p>{{ object.message.text }}</p>
@@ -609,7 +609,7 @@ export default {
                 <div class="usersChoosed">
                     <ul>
                         <!-- User who is selected -->
-                        <li class= "userChoosed "v-for="(conv, index) in selectedUsers" :key="index">
+                        <li class="userChoosed" v-for="(conv, index) in selectedUsers" :key="index">
                             <p>{{ conv.username }}</p>
                             <button @click.prevent="removeMember(index)">x</button>
                         </li>
