@@ -24,29 +24,30 @@ export default {
             'update-group-photo',
             'update-group-info'],
     methods: {
+        // function to go to the user info page
         closeModal() {
             this.$emit('close');
         },
+
+        // function to set the new username
         async setNewUsername() {
+            // try the request to set the new username
             try {
-                // Controlla che l'username sia valido
+                // check if the username is valid
                 if (this.username.length < 1 || this.username.length > 15) throw "Invalid username, it must contains min 1 character and max 15 characters"
                 if (!this.usernameValidation.test(this.username)) throw "Invalid username, it must contain only letters and numbers"
-
-                // Effettua la richiesta di login al server con l'username inserito (se l'username non esiste, verrà creato un nuovo utente)
+                // make the request
                 let response = await this.$axios.put(`/users/${sessionStorage.userID}/username`, {
                 username: this.username,
                 }, {headers: {Authorization: `${sessionStorage.token}`}});
-                
-                // Salva i dati dell'utente nella sessionStorage
+                // save the new username in sessionStorage
                 sessionStorage.username = response.data.username;
-
-                // Emette l'evento di login avvenuto con successo
+                // send the event to update the username in the parent component
                 this.$emit('update-username');
-
-                // Chiudi il modale
+                // close the modal
                 this.closeModal();
             } catch (e) {
+                // save and print the error message
                 if (e.response && e.response.status === 400) {
                     this.errorMsg = "Username already taken, please choose another one";
                 } else {
@@ -58,15 +59,20 @@ export default {
 }</script>
 
 <template>
+    <!-- Modal to set the new username -->
     <div v-if="show" class="modal-mask" >
         <div class="modal-wrapper">
             <div class="modal-container">
+                <!-- button to close the modal -->
                 <button class="exit-button" @click="closeModal">X</button>
                 <div class="modal-header">
+                    <!-- form to set the new username -->
                     <form @submit.prevent="setNewUsername">
                         <h3>Set new username</h3>
                         <ErrorMsg v-if="errorMsg" :msg="errorMsg"></ErrorMsg>
+                        <!-- input to set the new username -->
                         <input type="text" v-model="username" placeholder="Enter your new username" />
+                        <!-- button to set the new username -->
                         <button type="submit">confirm</button>
                     </form>
                 </div>

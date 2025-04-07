@@ -21,36 +21,55 @@ export default {
 			'update-group-members',
 			'update-group-info'],
 	methods:{
+
+		// function to go do the logout 
 		logOut(){
+			// remove all data from sessionStorage
 			sessionStorage.clear();
+			// set the variable that controls the login status to false
 			this.isLogged = false;
+			// set the variable that controls if the user info icon is shown to false
 			this.showUserInfo = false;
+			// set the username and photo to empty
 			this.username = "";
 			this.photo = "";
+			// go to the login page
 			this.$router.push("/");
 		},
 
+		// function to show the user info
 		handleHomeView() {
 			this.showUserInfo = true;
 		},
 
+		// function to handle the login success
 		handleLoginSuccess(){
+			// set the variable that controls the login status to true
 			this.isLogged = true;
+			// set the variable that controls if the user info icon is shown to true
 			this.showUserInfo = true;
+			// set the username and photo to the values stored in sessionStorage
 			this.username = sessionStorage.username;
 			this.photo = sessionStorage.photo;
 		},
 
+		// function to go to the user info page
 		goToUserInfo(){
+			// set the variable that controls if the user info icon is shown to false
 			this.showUserInfo = false;
+			// go to the user info page
 			this.$router.push("/user-info");
 		},
-
+		
+		// function to handle the update of the username
 		handleUpdateUsername(){
+			// set the username to the value stored in sessionStorage
 			this.username = sessionStorage.username;
 		},
 
+		// function to handle the update of the user photo
 		handleUpdateUserPhoto(){
+			// set the photo to the value stored in sessionStorage
 			this.photo = sessionStorage.photo;
 		}
 
@@ -61,17 +80,19 @@ export default {
 </script>
 
 <template>
-
 	<header class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-0 shadow">
 		<button class="navbar-toggler position-absolute d-md-none collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu" aria-controls="sidebarMenu" aria-expanded="false" aria-label="Toggle navigation">
 			<span class="navbar-toggler-icon"></span>
 		</button>
 	</header>
 
+	<!-- Main container -->
 	<div class="container-fluid">
 		<div class="row">
+			<!-- Sidebar, that is showed when the user is logged -->
 			<nav v-if="isLogged" id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse">
 				<div class="position-sticky pt-3 sidebar-sticky">
+					<!-- menu where user can do logout -->
 					<h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted text-uppercase">
 						<span>General</span>
 					</h6>
@@ -83,11 +104,14 @@ export default {
 					</ul>
 				</div>
 			</nav>
+
+
 			<main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
 				<RouterView @login-success="handleLoginSuccess" @to-home="handleHomeView" @update-username="handleUpdateUsername" @update-photo="handleUpdateUserPhoto"/>
 			</main>
 		</div>
-
+		
+		<!-- User info icon that is showed when the user is logged. When the user clicks on it, the user info page is opened -->
 		<div v-if="isLogged && showUserInfo" class="user-info">
 			<img :src="`data:image/jpg;base64,${photo}`" alt="User photo" >
 			<span>{{ username }}</span>

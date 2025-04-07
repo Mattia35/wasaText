@@ -8,7 +8,7 @@ export default {
             newMessage: "",
         }
     },
-    emits: ['to-home', 
+    emits: ['to-home',
             'login-success', 
             'update-username', 
             'close', 
@@ -18,26 +18,42 @@ export default {
             'update-group-members',
             'update-group-info'],
     methods: {
+        // function to go to the home page
         goToHome() {
+            // remove the recipient name and photo from sessionStorage
             sessionStorage.removeItem("recipientName");
             sessionStorage.removeItem("recipientPhoto");
+            // go to the home page
             this.$router.push("/home");
         },
-
+        // function to create a new private conversation
         async createPrivateConversation() {
             this.errorMsg = "";
+            // try the request
             try{
-                if (this.newMessage.trim() === "") throw "è richiesto un messaggio testuale per creare la conversazione!";
+                // check if the mesage is empty
+                if (this.newMessage.trim() === "") throw "message is empty!";
+                // make the request
                 let response = await this.$axios.put(`/users/${sessionStorage.userID}/conversations`,
                 {
                     user: this.recipientname,
                     text: this.newMessage,
                 }, { headers: { 'Authorization': `${sessionStorage.token}` }});
                 this.newMessage = "";
-                let conversation = response.data;
-                sessionStorage.convId = conversation.convId;
-                this.$router.push(`/chat/${conversation.convId}`);
+                // get the response (array of conversations)
+                let conversations = response.data;
+                // get the conversation that is just created
+                for (let i = 0; i < conversations.length; i++) {
+                    if (conversations[i].user.username === this.recipientname) {
+                        // save the conversation id in sessionStorage
+                        sessionStorage.convId = conversations[i].conversation.convId;
+                        break;
+                    }
+                }
+                // go to the conversation page
+                this.$router.push(`/chat/${sessionStorage.convId}`);
             } catch (e) {
+                // save and print the error message
                 this.errorMsg = e.toString();
             }
         },
@@ -49,22 +65,28 @@ export default {
 </script>
 
 <template>
+    <!-- container of the chat -->
     <div class="chat-container">
+        <!-- header of the chat -->
         <div class="chat-header">
+            <!-- back button to go to the home page -->
             <button @click="goToHome" class="back-button"> 
                 <svg class="feather"> 
                     <use href="/feather-sprite-v4.29.0.svg#chevron-left" />
                 </svg>
             </button>
+            <!-- recipient photo and name -->
             <img :src="`data:image/jpg;base64,${recipientPhoto}`" alt="Conversation photo" class="recipient-photo">
             <div class="recipient-info">
                 <h2 class="recipient-name">{{ recipientname }}</h2>
             </div>
         </div>
+        <!-- body of the chat (empty)-->
         <div class="chat-body">
             <div class="chat-messages">
             </div>
         </div>
+        <!-- footer of the chat (input and send button) -->
         <div class="chat-footer">
             <ErrorMsg v-if="errorMsg" :msg="errorMsg"></ErrorMsg>
             <form @submit.prevent="createPrivateConversation">

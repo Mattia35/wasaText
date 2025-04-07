@@ -400,16 +400,50 @@ paths:
                   maxLength: 9999
       responses:
         '201':
-          description: New chat creaction action successful
+          description: |
+            an array of object, each one contains a name, a message,
+            a array users and a photo
           content:
-            plain/text:
-              schema: 
-                description: '201 response message'
-                type: string
-                pattern: '^.*?$'
-                minLength: 1
-                maxLength: 45
-                example: 'Forwarding accepted!'
+            application/json:
+              schema:
+                type: object
+                description: '200 response message'
+                properties: 
+                  conversations:
+                    description: conversations array in output
+                    type: array
+                    items:
+                      type: object
+                      description: object with all data of a conversation
+                      properties: 
+                        conversation:
+                          $ref: '#/components/schemas/Conversation'
+                        user:
+                          $ref: '#/components/schemas/User'
+                        group:
+                          $ref: '#/components/schemas/Group'
+                        group_users:
+                          description: members of the group
+                          type: array
+                          items:
+                            $ref: '#/components/schemas/User'
+                          minItems: 1
+                          maxItems: 10000
+                        message:
+                          $ref: '#/components/schemas/Message'
+                        sender_user:
+                          $ref: '#/components/schemas/User'
+                        date_time:
+                          type: string
+                          description: date and time of the last message
+                          format: date-time
+                          pattern: '^\\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\\d|3[01])T([01]\\d|2[0-3]):[0-5]\\d$'
+                          minLength: 16
+                          maxLength: 16
+                      required: [conversation, user, group, group_users, message, sender_user, date_time]
+                    minItems: 0
+                    maxItems: 10000
+                required: [conversations]
         '400':
           $ref: '#/components/responses/InvalidRequestError'
         '401':
@@ -903,18 +937,18 @@ paths:
       summary: Adds users to group
       description: User Adds users to group, defined by the groupId
       requestBody:
-        description: User gives an array of user in input
+        description: User gives an array of usernames in input
         content:
           application/json:
             schema:
               type: object
-              description: object that contains an array of user in input
+              description: object that contains an array of usernames in input
               properties:
                 users:
-                  description: user ids in input
+                  description: usernames in input
                   type: array
                   items:
-                    $ref: '#/components/schemas/User'
+                    $ref: '#/components/schemas/Username'
                   minItems: 1
                   maxItems: 49
         required: true

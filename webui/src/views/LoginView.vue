@@ -1,14 +1,9 @@
-<!-- In questa pagina l'utente effettua il login -->
-
 <script>
 export default {
   data() {
     return {
-      // Username input dell'utente che si sta loggando
       username: "",
       errorMsg: "",
-
-      // Verifica per il campo username
       usernameValidation: new RegExp('^[a-z0-9]{1,15}$'),
     }
   },
@@ -22,39 +17,38 @@ export default {
           'update-group-members',
           'update-group-info'],
   methods: {
-    // Funzione per effettuare il login
+    // function to do the login
     async doLogin() {
+      // try the request
       try {
-        // Controlla che l'username sia valido
+        // control if the username is valid
         if (this.username.length < 1 || this.username.length > 15) throw "Invalid username, it must contains min 1 character and max 15 characters"
         if (!this.usernameValidation.test(this.username)) throw "Invalid username, it must contain only letters and numbers"
-
-        // Effettua la richiesta di login al server con l'username inserito (se l'username non esiste, verrà creato un nuovo utente)
+        // make the request to the server
         let response = await this.$axios.post('/session', {
           username: this.username,
         });
-
-        // Salva i dati dell'utente nella sessionStorage
+        // save the user data in sessionStorage
         sessionStorage.userID = response.data.user.userId;
         sessionStorage.username = response.data.user.username;
         sessionStorage.token = response.data.user.userId;
         sessionStorage.photo = response.data.user.userPhoto;
-        // Reindirizza l'utente alla home
+        // go to the home page
         this.$router.push("/home");
-        // Emette l'evento di login avvenuto con successo
+        // send the event to declare the login success
         this.$emit('login-success');
       } catch (e) {
+        // save and print the error message
         this.errorMsg = e.toString();
       };
     }
   },
   mounted() {
-    // Se l'utente è già loggato, reindirizza alla home
+    // check if the user is already logged in. If yes, go to the home page, otherwise clear the sessionStorage
     if (sessionStorage.token) {
       this.$router.push("/home");
       return;
     }
-    // Altrimewnti cancella i dati dell'utente dalla sessionStorage
     sessionStorage.clear();
   },
 }
@@ -63,10 +57,14 @@ export default {
 
 <template>
   <ErrorMsg v-if="errorMsg" :msg="errorMsg"></ErrorMsg>
+  <!-- Login containter -->
   <div class="login-container">
+    <!-- Form to login -->
     <form @submit.prevent="doLogin">
       <h1>WasaText</h1>
+      <!-- Input for the username -->
       <input type="text" v-model="username" placeholder="Enter your username" required/>
+      <!-- Submit button -->
       <button type="submit">Login</button>
     </form>
   </div>

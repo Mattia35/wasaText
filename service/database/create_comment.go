@@ -8,7 +8,7 @@ import (
 )
 
 var query_ADDCOMMENT = `INSERT INTO commentTable (commId, messId, content, senderId, convId) VALUES (?, ?, ?, ?, ?);`
-var query_MAXCOMMID = `SELECT MAX(commId) FROM commentTable WHERE convId = ? AND messId = ?;`
+var query_MAXCOMMID = `SELECT MAX(commId) FROM commentTable;`
 
 func (db *appdbimpl) CreateComment(com structions.Comment) (structions.Comment, error) {
 	var comment structions.Comment
@@ -19,7 +19,7 @@ func (db *appdbimpl) CreateComment(com structions.Comment) (structions.Comment, 
 	comment.MessageId = com.MessageId
 	// ------FIND MESSID---------//
 	var _maxID = sql.NullInt64{Int64: 0, Valid: false}
-	row, err := db.c.Query(query_MAXCOMMID, comment.ConvId, comment.MessageId)
+	row, err := db.c.Query(query_MAXCOMMID)
 	if err != nil {
 		return comment, err
 	}

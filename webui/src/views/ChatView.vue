@@ -50,16 +50,21 @@ export default {
         groupInfo
     },
     watch: {
+        // watch the search text and call the filterUsers function
 		searchText() {
 			this.filterUsers();
 		},
 	},
     methods: {
+        // function to update data about group members
         updateData(data) {
             this.infoGroupMembers = data;
             this.infoGroupMembersQuantity = data.length + 1;
         },
+
+        // function to comment a message
         async commentMessage(input) {
+            // check if the user is the sender of the message, so he can't comment his own message
             for (let i = 0; i < this.messages.length; i++) {
                 if (this.messages[i].message.messageId === this.messId) {
                     if (this.messages[i].sender.userId === this.userId) {
@@ -69,11 +74,15 @@ export default {
                 }
             }
             this.errorMsg3 = "";
+            // try the request to comment the message
             try {
+                // make the request to comment the message
                 let response = await this.$axios.put(`/users/${sessionStorage.userID}/conversations/${sessionStorage.convId}/messages/${this.messId}/comments`, {
                     emoji: input,
                 }, { headers: { 'Authorization': `${sessionStorage.token}` }});
+                // update the comments array with the function getMessages
                 this.getMessages();
+                // check if the user has already commented the message. If yes, update the comment, otherwise add the new comment
                 const newComment = response.data;
                 for (let i = 0; i < this.comments.length; i++) {
                     if (this.comments[i].sender.userId === this.userId) {
@@ -87,10 +96,14 @@ export default {
                     this.HaveICommented = true;
                 }
             } catch (e) {
+                // save and print the error message
                 this.errorMsg3 = e.toString();
             }
         },
+
+        // function to uncomment a message
         async uncommentMessage() {
+            // check if the user is the sender of the message, so he can't uncomment his own message
             let commentId = 0;
             for (let i = 0; i < this.messages.length; i++) {
                 if (this.messages[i].message.messageId === this.messId) {
@@ -100,10 +113,12 @@ export default {
                     }
                 }
             }
+            // check if the user has already commented the message. If not show an error message
             if (!this.HaveICommented) {
                 this.errorMsg3 = "You haven't commented this message!";
                 return;
             }
+            // else, get the commentId of the comment to delete
             else {
                 for (let i = 0; i < this.comments.length; i++) {
                     if (this.comments[i].sender.userId === this.userId) {
@@ -113,9 +128,12 @@ export default {
                 }
             }
             this.errorMsg3 = "";
+            // try the request to uncomment the message
             try {
+                // make the request to uncomment the message
                 await this.$axios.delete(`/users/${sessionStorage.userID}/conversations/${sessionStorage.convId}/messages/${this.messId}/comments/${commentId}`, { headers: { 'Authorization': `${sessionStorage.token}` }});
                 this.getMessages();
+                // update the comments array, removing the comment
                 for (let i = 0; i < this.comments.length; i++) {
                     if (this.comments[i].sender.userId === this.userId) {
                         this.comments.splice(i, 1);
@@ -124,18 +142,25 @@ export default {
                     }
                 }
             } catch (e) {
+                // save and print the error message
                 this.errorMsg3 = e.toString();
             }
         },
+
+        // function to show the comments menu, where the user can also comment or uncomment a message
         showComments(object) {
+            // get message and comment data
             this.messId = object.message.messageId;
             this.HaveICommented = false;
             this.showCom = !this.showCom;
+            // if the message has no comments, comments is an empty array
             if (object.comments == null) {
                 this.comments = [];
                 return;
             }
+            // else, get the comments of the message
             this.comments = object.comments;
+            // check if the user has already commented the message. If yes, set it as the last comment of the array
             for (let i = 0; i < this.comments.length; i++) {
                 if (this.comments[i].sender.userId === this.userId) {
                     this.HaveICommented = true;
@@ -145,36 +170,51 @@ export default {
                 }
             }
         },
+
+        // function to hide the comments menu
         showComments2() {
             this.showCom = !this.showCom;
             this.errorMsg3 = "";
         },
+
+        // function to select the message to reply to. This function is called when the user clicks on the reply button
         selectMessage() {
             this.showReplyTo = true;
             this.selectedMessageId = this.messId;
             this.option = false;
         },
+
+        // function to unselect the message to reply to. This function is called when the user clicks on the remove button
         unselectMessage() {
             this.showReplyTo = false;
             this.selectedMessageId = 0;
         },
+
+        // function to delete the message. This function is called when the user clicks on the delete button
         async deleteMessage() {
             this.errorMsg = "";
+            // try the request to delete the message
             try {
+                // make the request to delete the message
                 this.$axios.delete(`/users/${sessionStorage.userID}/conversations/${sessionStorage.convId}/messages/${this.messId}`, { headers: { 'Authorization': `${sessionStorage.token}`} });
                 this.option = false;
+                // call the getMessages function to update the messages and their data
                 this.getMessages();
             } catch (e) {
+                // save and print the error message
                 this.errorMsg = e.toString();
             }
         },
 
+        // function to forward the message. This function is called when the user clicks on the forward button
         async ForwardMessage() {
             this.errorMsg2 = "";
+            // check if the user has selected at least one conversation or user to forward the message
             if (this.conversationsSelected.length === 0 && this.selectedUsers.length === 0) {
                 this.errorMsg2 = "You must select at least one conversation or user!";
                 return;
             }
+            // prepare the destination array, with objects containing the user or group ids
             let object = {
                 user: 0,
                 group: 0,
@@ -198,6 +238,7 @@ export default {
                 }
                 destination.push(object);
             }
+            // clear all variables used to store the selected conversations and users
             object = {
                 user: 0,
                 group: 0,
@@ -207,63 +248,84 @@ export default {
             this.conversationsFiltered = [];
             this.filteredUsers = [];
             this.searchText = "";
+            // create the input object to send to the server
             const input = {
                 destination: destination,
             }
+            // try the request to forward the message
             try { 
+                // make the request to forward the message
                 this.$axios.post(`/users/${sessionStorage.userID}/conversations/${sessionStorage.convId}/messages/${this.messId}`, input, { headers: { 'Authorization': `${sessionStorage.token}` } });
+                // close the forward and option menus
                 this.showForwardBool = false;
                 this.option = false;
             } catch (e) {
+                // save and print the error message
                 this.errorMsg = e.toString();
             };
         },
+
+        // function to select a group conversation to forward the message. This function is called when the user clicks on the conversation
         selectConversation(conversation) {
+            // check if the user has already selected the conversation 
             if (this.conversationsSelected.some(conv => conv.conversation.convId === conversation.conversation.convId)) {
                 this.errorMsg2 = "You have already selected this conversation!";
                 return;
             }
+            // else, add the conversation to the selected conversations array
             this.conversationsSelected.push(conversation);
         },
 
+        //  function to remove a group conversation from the selected conversations array
         removeGroup(index) {
             this.conversationsSelected.splice(index, 1);
             if (this.errorMsg2) {
                 this.errorMsg2 = "";
             }
         },
+
+        // function to remove a user from the selected conversations array
         removeMember(index) {
 			this.selectedUsers.splice(index, 1);
 			if (this.errorMsg2) {
 				this.errorMsg2 = "";
 			}
 		},
+
+        // function to search for users with a specific string in their username 
         async filterUsers() {
             if (this.errorMsg2 !== "It's not necessary that you select yourself!" || this.searchText.length !== 0) {
                 this.errorMsg2 = "";
             }
 			this.filteredUsers = [];
-
+            // check if the search text is empty
 			if (this.searchText.length > 0) {
+                // check if the search text is too long or if it contains invalid characters
 				if (this.searchText.length > 15 || !this.usernameValidation.test(this.searchText)) {
 				this.errorMsg2 = "Invalid username, it can contain only letters and numbers for a maximum of 16 characters.";
 				this.filteredUsers = [];
 				return;
 				}
+                // try the request to get the users
 				try {
+                    // make the request to get the users
 					let response = await this.$axios.get(`/users?query=${this.searchText}`, { headers: { 'Authorization': `${sessionStorage.token}` } });
-					if (response.data == null) {
+					// check if the response is empty. If yes, set the filteredUsers array to an empty array
+                    if (response.data == null) {
 					this.filteredUsers = [];
 					return;
 					}
+                    // else, set the filteredUsers array to the response data
 					this.filteredUsers = response.data;
 				} catch (e) {
+                    // save and print the error message
 					this.errorMsg2 = e.toString();
 					this.filteredUsers = [];
 				}
 			}
 		},
 
+        // function to select a user to forward the message. This function is called when the user clicks on the user
         selectUser(user) {
 			if (user.userId === Number(sessionStorage.userID)) {
 				this.errorMsg2 = "It's not necessary that you select yourself!";
@@ -273,122 +335,173 @@ export default {
 			}
 			this.searchText = "";  
 			this.filteredUsers = [];  
-			},
+		},
 
+        // function to update the group members that are changed in the group info component
         updateGroupMembers() {
             this.members = sessionStorage.members;
         },
+
+        // function to update the group name that is changed in the group info component
         updateGroupname() {
             this.recipientname = sessionStorage.recipientName;
         },
+
+        // function to update the group photo that is changed in the group info component
         updateGroupPhoto() {
             this.recipientPhoto = sessionStorage.recipientPhoto;
         },
+
+        // function to remove the selected photo to send as new message
         removeFile() {
             this.newPhoto = null;
         },
+
+        // function to open the file input to select a new photo to send as new message
         fileInput(){
             this.$refs.file.click();
         },
+
+        // function to handle the file input change event
         handleFileChange(event) {
+            // get the file from the input
             const file = event.target.files[0]; 
+            // check if the file is null (if the user has not selected a file)
             if (!file) {
             this.errorMsg = "Nessun file selezionato";
             return;
             }
+            // check if the file is an image (jpeg or gif)
             if (file.type !== "image/jpeg" && file.type !== "image/jpg" && file.type !== "image/gif") {
             this.errorMsg = "File type not supported, only jpg, jpeg and gif are allowed";
             return;
             }
+            // check if the file is too big (5MB)
             if (file.size > 5242880) {
             this.errorMsg = "File size is too big. Max size is 5MB";
             return;
             }
+            // assign the file to the newPhoto variable
             this.newPhoto = file;
         },
 
+        // function to go to home page
         goToHome() {
+            // if the user is in a group conversation, remove the group data (id and members) from sessionStorage
             if (sessionStorage.groupID) {
                 sessionStorage.removeItem("groupID");
                 sessionStorage.removeItem("membersOfGroup");
                 sessionStorage.removeItem("members");
             }
+            // remove the recipient name and photo from sessionStorage, and set the control variable to true
             sessionStorage.removeItem("recipientName");
             sessionStorage.removeItem("recipientPhoto");
             this.control = true;
             this.$router.push("/home");
         },
+
+        // function to get the messages of the conversation
         async getMessages() {
+            // check if the user is in the home page, if yes, return
             if (this.control) {
                 return;
             }
             this.errorMsg = "";
             this.messages = [];
+            // try the request to get the messages
             try{
+                // make the request to get the messages
 				let response = await this.$axios.get(`/users/${sessionStorage.userID}/conversations/${sessionStorage.convId}`, { headers: { 'Authorization': `${sessionStorage.token}` } });
-				this.messages = response.data;
+				// get the messages data from the response
+                this.messages = response.data;
 			} catch (e) {
+                // save and print the error message
 				this.errorMsg = e.toString();
 			}
         },
+
+        // function to send a new message
         async sendMessage() {
             this.errorMsg = "";
+            // create a new FormData object to send a message
             const formData = new FormData();
+            // check if the message has a photo. If yes, append it to the formData object
             if (this.newPhoto && (this.newPhoto.type === "image/jpeg" || this.newPhoto.type === "image/jpg")) {
                 formData.append('image', this.newPhoto);
             }
+            // check if the message has a gif. If yes, append it to the formData object
             if (this.newPhoto && (this.newPhoto.type === "image/gif")) {
                 formData.append('gif', this.newPhoto);
             }
+            // check if the message has a text. If yes, append it to the formData object
             if (this.newMessage) {
                 formData.append('text', this.newMessage);
             }
+            // check if the message is a response to other. If yes, append his id to the formData object
             if (this.selectedMessageId != 0) {
                 formData.append('messToReplyTo', this.selectedMessageId);
             }
+            // check if the message is empty (no text, no photo or no gif). If yes, show an error message
             if (this.newMessage && this.newPhoto && (this.newPhoto.type === "image/gif")) {
                 this.errorMsg = "You must write a message or select a photo/gif";
                 return;
             }
+            // try the request to send the message
             try{
+                // make the request to send the message
                 let response = await this.$axios.post(`/users/${sessionStorage.userID}/conversations/${sessionStorage.convId}/messages`,
                 formData, { headers: { 'Authorization': `${sessionStorage.token}` }});
+                // update the messages array with the function getMessages and reset the input fields
                 this.newMessage = "";
                 this.newPhoto = null;
                 this.getMessages();
                 this.showReplyTo = false;
                 this.selectedMessageId = 0;
             } catch (e) {
+                // save and print the error message
                 this.errorMsg = e.toString();
             }
         },
+
+        // function to open or close the group info component
         groupInfo() {
             this.showGroupInfo = !this.showGroupInfo;
+            // get the group members from sessionStorage. It is important in the case of you are closing the group info component 
             if (sessionStorage.membersOfGroup) {
                 this.infoGroupMembers = JSON.parse(sessionStorage.membersOfGroup);
             }
             this.infoGroupMembersQuantity = this.infoGroupMembers.length+1;
         },
+
+        // function to open the message options menu and get the message id
         showOption(object) {
             this.messId = object.message.messageId;
             this.option = !this.option;
         },
 
+        // function to close the message options menu
         showOption2() {
             this.option = !this.option;
         },
+
+        // function to open or close the forward menu, and update the list of group conversations
         showForward() {
             this.showForwardBool = !this.showForwardBool;
             this.getConversations();
             this.option = !this.option;
         },
 
+        // function to get the conversations of the user (important in the case of you want to select a group conversation to forward the message)
         async getConversations() {
 			this.errorMsg = "";
 			this.conversations = [];
+            // try the request to get the conversations
 			try{
+                // make the request to get the conversations
 				let response = await this.$axios.get(`/users/${sessionStorage.userID}/conversations`, { headers: { 'Authorization': `${sessionStorage.token}` } });
-				this.conversations = response.data;
+				// get the conversations data from the response
+                this.conversations = response.data;
+                // update the conversationsFiltered array with the conversations that are groups
                 for (let i = 0; i < this.conversations.length; i++) {
                     if (this.conversations[i].conversation.group != 0) {
                         this.conversationsFiltered.push(this.conversations[i]);
@@ -396,11 +509,13 @@ export default {
                 }
 
 			} catch (e) {
+                // save and print the error message
 				this.errorMsg = e.toString();
 			}
 		}
     },
     mounted() {
+        // every time the component is mounted, get the messages and set the interval to update the messages every 5 seconds
         this.getMessages();
         this.intervalId = setInterval(async () => {
             clearInterval(this.intervalId);
@@ -413,40 +528,64 @@ export default {
 </script>
 
 <template>
+    <!-- Chat container -->
     <div class="chat-container">
+
+        
+        <!-- Chat header of group conversation -->
         <div v-if="groupId != 0" class="chat-header" @click="groupInfo">
+            <!-- back button to go to the home page -->
             <button @click="goToHome" class="back-button"> 
                 <svg class="feather"> 
                     <use href="/feather-sprite-v4.29.0.svg#chevron-left" />
                 </svg>
             </button>
+            <!-- group photo, groupname and members list -->
             <img :src="`data:image/jpg;base64,${recipientPhoto}`" alt="Conversation photo" class="recipient-photo">
-            <div class="recipient-info" @click="goToUserInfo">
+            <div class="recipient-info">
                 <h2 class="recipient-name">{{ recipientname }}</h2>
                 <p class="members-list">{{ members }}</p>
             </div>
         </div>
+
+        
+        <!-- Chat header of private conversation -->
         <div v-else class="chat-header">
+            <!-- back button to go to the home page -->
             <button @click="goToHome" class="back-button"> 
                 <svg class="feather"> 
                     <use href="/feather-sprite-v4.29.0.svg#chevron-left" />
                 </svg>
             </button>
+            <!-- userphoto and username -->
             <img :src="`data:image/jpg;base64,${recipientPhoto}`" alt="Conversation photo" class="recipient-photo">
             <div class="recipient-info">
                 <h2 class="recipient-name">{{ recipientname }}</h2>
             </div>
         </div>
+        
+
+        <!-- Chat body that contains all messages -->
         <div class="chat-body">
             <div class="chat-messages">
+
+                <!-- list of messages, that contains all information for single message. It's possible, clicking on a message,
+                  to open the option menu of the relative message -->
                 <div v-for="object in messages" @click="showOption(object)" :key="object.message.messageId" :class="{'message': true, 'user-message': object.sender.username === username, 'other-message': object.sender.username !== username}">
+                    
+                    <!-- if the message is a reply to another message, show the reply to message -->
                     <div v-if="object.message.replyId" class="replyToMessage">
+                        <!-- check if the reply to message that was sended by the user or by another user (has a different layout) -->
                         <span class="replyToUser" v-if="messages.find(mes => mes.message.messageId === object.message.replyId).sender.userId === userId">Me</span>
                         <span class="replyToUser" v-else>{{ messages.find(mes => mes.message.messageId === object.message.replyId).sender.username }}</span>
+                        <!-- check if the reply to message has a photo, text or gif -->
                         <img v-if="messages.find(mes => mes.message.messageId === object.message.replyId).message.photo" :src="`data:image/jpg;base64,${messages.find(mes => mes.message.messageId === object.message.replyId).message.photo}`" alt="Reply to message image" />
                         <span v-if="messages.find(mes => mes.message.messageId === object.message.replyId).message.text">{{ messages.find(mes => mes.message.messageId === object.message.replyId).message.text }}</span>
                         <img v-if="messages.find(mes => mes.message.messageId === object.message.replyId).message.gif" :src="`data:image/gif;base64,${messages.find(mes => mes.message.messageId === object.message.replyId).message.gif}`" alt="Reply to message gif" />
                     </div>
+                    
+                    <!-- Message header, that contains username, if is a forwarded message and datetime -->
+                    <!-- CASE 1: message is sended by other user, in a group conversation (show the name of user) -->
                     <div v-if="groupId != 0 && object.sender.username !== username" class="message-header">
                         <h4>{{ object.sender.username }}</h4>
                         <div class="forwarded-date">
@@ -459,6 +598,7 @@ export default {
                             </div>
                         </div>
                     </div>
+                    <!-- CASE 2: message is sended by other user or the user, in a private conversation (not show the name of user) -->
                     <div v-else class="message-header" >
                         <div class="forwarded-date">
                             <p class="only-date">{{ object.dateTime }}</p>
@@ -470,6 +610,8 @@ export default {
                             </div>
                         </div>    
                     </div>
+
+                    <!-- Message body, that contains the message text, photo or gif -->
                     <div v-if="!object.message.text && object.message.photo" class="message-body">
                         <img class="img" :src="`data:image/jpg;base64,${object.message.photo}`" alt="Message image" />
                     </div>
@@ -483,6 +625,8 @@ export default {
                     <div v-if="object.message.text && !object.message.photo" class="message-body">
                         <p>{{ object.message.text }}</p>
                     </div>
+
+                    <!-- Message footer, that contains the checkmark and the comments -->
                     <div class="checkmark-and-comments">
                         <p v-if="object.message.senderId === userId" class="comments-user" @click.stop="showComments(object)">See all comments</p>
                         <p v-else class="comments-dest" @click.stop="showComments(object)">See all comments</p>
@@ -503,11 +647,17 @@ export default {
                 </div>
             </div>
         </div>
+
+
+        <!-- Chat footer, that contains the input field to send a new message -->
         <div class="chat-footer">
             <ErrorMsg v-if="errorMsg" :msg="errorMsg"></ErrorMsg>
             <form @submit.prevent="sendMessage">
+                <!-- input field to insert a string -->
                 <input @keydown.enter.prevent="sendMessage" type="text" v-model="newMessage" placeholder="Type a message" />
+                <!-- input field (not showed) to insert a photo or gif -->
                 <input type="file" ref="file" accept=".jpg,.jpeg,.gif" @change="handleFileChange" style="display: none;"/>
+                <!-- buttons remove the selected photo or gif, unselect message to reply and send finally new message -->
                 <button class="remove-file-button" @click="unselectMessage" v-if="showReplyTo">
                     <svg class="feather"> 
                         <use href="/feather-sprite-v4.29.0.svg#trash-2" />
@@ -529,6 +679,7 @@ export default {
     </div>
     
 
+    <!-- Message options menu, that contains the reply to message, forward message and delete message buttons -->
     <div v-if="option" @click="showOption2" class="fullscreen-container">
 		<div v-if="option" @click.stop class="message-option-container">
 			<!-- Button to the select the message as cause of reply -->
@@ -541,24 +692,29 @@ export default {
 	</div>
 
 
+    <!-- Message comments menu, that contains the comment input field and the list of comments -->
     <div v-if="showCom" @click="showComments2" class="fullscreen-container">
         <div @click.stop class="comments-option-container">
             <div class="comments">
                 <p>Message comments</p>
+                <!-- check if the message has comments -->
                 <div v-if="comments.length === 0" class="no-comments">
                     <p>No comments</p>
                 </div>
+                <!-- if the message has comments, show the list of comments -->
                 <div v-for="object in comments" :key="object.commentId" class="comment">
                     <h4 v-if="object.sender.userId !== userId">{{ object.sender.username }}:</h4>
                     <h4 v-if="object.sender.userId === userId">Me:</h4>
                     <p >{{ object.content }}</p>
                 </div>
             </div>
+            <!-- input field to choose a new comment (an emojis between) -->
             <div class="comment-input">
                 <h3>Comment message!</h3>
                 <div v-for="emoji in emojis" :key="emoji" class="emoji" @click="commentMessage(emoji)">
                     {{ emoji }}
                 </div>
+                <!-- trash emoji to delete the comment -->
                 <div class="emoji" @click="uncommentMessage()">
                     <svg class="feather"> 
                         <use href="/feather-sprite-v4.29.0.svg#trash-2" />
@@ -570,6 +726,7 @@ export default {
     </div>
 
 
+    <!-- Message forward menu, that contains the list of conversations to select to forward the message -->
     <div v-if="showForwardBool" @click="showForward" class="fullscreen-container">
         <div @click.stop class="menu-forward">
             <h3 class="menu-forward-title">Select conversations to forward the message</h3>
@@ -584,7 +741,7 @@ export default {
 					        <p class="conversation-name" v-if="conversation.conversation.group != 0">{{ conversation.group.username }}</p>
 						</button>
                         <ul>
-                            <!-- Group who is selected -->
+                            <!-- Selected groups, that have the unselect button -->
                             <li v-for="(conv, index) in conversationsSelected" :key="index">
                                 <p>{{ conv.group.username }}</p>
                                 <button @click.prevent="removeGroup(index)">x</button>
@@ -608,7 +765,7 @@ export default {
                 </div>
                 <div class="usersChoosed">
                     <ul>
-                        <!-- User who is selected -->
+                        <!-- Selected users, that have the unselect button -->
                         <li class="userChoosed" v-for="(conv, index) in selectedUsers" :key="index">
                             <p>{{ conv.username }}</p>
                             <button @click.prevent="removeMember(index)">x</button>
