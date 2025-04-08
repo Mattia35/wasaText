@@ -13,8 +13,6 @@ components:
       scheme: bearer
       bearerFormat: JWT # optional, arbitrary value for documentation purposes
   responses:
-    UnauthorizedError:
-      description: Access token is missing or invalid
     InvalidRequestError:
       description: bad request
       content:
@@ -31,7 +29,7 @@ components:
                 maxLength: 30
                 example: "Bad request, retry!" 
     ForbiddenError:
-      description: bad request
+      description: Access token is missing or invalid
       content:
         application/json:
           schema:
@@ -44,7 +42,7 @@ components:
                 pattern: '^.*?$'
                 minLength: 1
                 maxLength: 50
-                example: "User is not allowed to perform the action!" 
+                example: "Access token is missing or invalid!" 
     InternalServerError:
       description: server error
       content:
@@ -61,7 +59,7 @@ components:
                 maxLength: 30
                 example: "Server error, try again later!"
     NotFoundError:
-      description: server error
+      description: object not found, due to a wrong request
       content:
         application/json:
           schema:
@@ -298,10 +296,8 @@ paths:
                       $ref: '#/components/schemas/User'
                     minItems: 0
                     maxItems: 10000
-        '401':
-          $ref: '#/components/responses/UnauthorizedError'
-        '403':
-          $ref: '#/components/responses/ForbiddenError'
+        '400':
+          $ref: '#/components/responses/InvalidRequestError'
         '404':
           $ref: '#/components/responses/NotFoundError'
         '500':
@@ -369,8 +365,8 @@ paths:
                     minItems: 0
                     maxItems: 10000
                 required: [conversations]
-        '401':
-          $ref: '#/components/responses/UnauthorizedError'
+        '400':
+          $ref: '#/components/responses/InvalidRequestError'
         '403':
           $ref: '#/components/responses/ForbiddenError'
         '500':
@@ -446,8 +442,8 @@ paths:
                 required: [conversations]
         '400':
           $ref: '#/components/responses/InvalidRequestError'
-        '401':
-          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
         '500':
           $ref: '#/components/responses/InternalServerError'
           
@@ -485,8 +481,8 @@ paths:
             application/json:
               schema: 
                 $ref: '#/components/schemas/Conversation'
-        '401':
-          $ref: '#/components/responses/UnauthorizedError'
+        '400':
+          $ref: '#/components/responses/InvalidRequestError'
         '403':
           $ref: '#/components/responses/ForbiddenError'
         '500':
@@ -560,8 +556,6 @@ paths:
                     $ref: '#/components/schemas/Message'
         '400':
           $ref: '#/components/responses/InvalidRequestError'
-        '401':
-          $ref: '#/components/responses/UnauthorizedError'
         '403':
           $ref: '#/components/responses/ForbiddenError'
         '404':
@@ -636,8 +630,6 @@ paths:
                     maxItems: 10000
         '400':
           $ref: '#/components/responses/InvalidRequestError'
-        '401':
-          $ref: '#/components/responses/UnauthorizedError'
         '403':
           $ref: '#/components/responses/ForbiddenError'
         '500':
@@ -663,8 +655,6 @@ paths:
                 example: "Deletion accepted!"
         '400':
           $ref: '#/components/responses/InvalidRequestError'
-        '401':
-          $ref: '#/components/responses/UnauthorizedError'
         '403':
           $ref: '#/components/responses/ForbiddenError'
         '500':
@@ -786,8 +776,6 @@ paths:
                 required: [id, message_id, emoji, sender, conv_id]
         '400':
           $ref: '#/components/responses/InvalidRequestError'
-        '401':
-          $ref: '#/components/responses/UnauthorizedError'
         '403':
           $ref: '#/components/responses/ForbiddenError'
         '500':
@@ -844,8 +832,6 @@ paths:
                 example: "Deletion accepted!"
         '400':
           $ref: '#/components/responses/InvalidRequestError'
-        '401':
-          $ref: '#/components/responses/UnauthorizedError'
         '403':
           $ref: '#/components/responses/ForbiddenError'
         '404':
@@ -909,8 +895,8 @@ paths:
                     $ref: '#/components/schemas/GeneralId'
         '400':
           $ref: '#/components/responses/InvalidRequestError'
-        '401':
-          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
         '500':
           $ref: '#/components/responses/InternalServerError'
           
@@ -970,8 +956,6 @@ paths:
                     maxItems: 49
         '400':
           $ref: '#/components/responses/InvalidRequestError'
-        '401':
-          $ref: '#/components/responses/UnauthorizedError'
         '403':
           $ref: '#/components/responses/ForbiddenError'
         '500':
@@ -997,8 +981,6 @@ paths:
                 example: "group leave accepted!"
         '400':
           $ref: '#/components/responses/InvalidRequestError'
-        '401':
-          $ref: '#/components/responses/UnauthorizedError'
         '403':
           $ref: '#/components/responses/ForbiddenError'
         '500':
@@ -1060,10 +1042,10 @@ paths:
                     maxLength: 7000000
         '400':
           $ref: '#/components/responses/InvalidRequestError'
-        '401':
-          $ref: '#/components/responses/UnauthorizedError'
         '403':
           $ref: '#/components/responses/ForbiddenError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
   
   /users/{user}/groups/{group_id}/name:
     description: user area where he can modify the group name
@@ -1111,10 +1093,10 @@ paths:
                 $ref: '#/components/schemas/Group'
         '400':
           $ref: '#/components/responses/InvalidRequestError'
-        '401':
-          $ref: '#/components/responses/UnauthorizedError'
         '403':
           $ref: '#/components/responses/ForbiddenError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
   
   /users/{user}/username:
     description: user area where he can modify his username
@@ -1148,10 +1130,10 @@ paths:
                 $ref: '#/components/schemas/User'
         '400':
           $ref: '#/components/responses/InvalidRequestError'
-        '401':
-          $ref: '#/components/responses/UnauthorizedError'
         '403':
           $ref: '#/components/responses/ForbiddenError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
   /users/{user}/photo:
     description: user area where he can modify his photo
     parameters:
@@ -1202,10 +1184,10 @@ paths:
                     maxLength: 7000000
         '400':
           $ref: '#/components/responses/InvalidRequestError'
-        '401':
-          $ref: '#/components/responses/UnauthorizedError'
         '403':
           $ref: '#/components/responses/ForbiddenError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
     
 
     

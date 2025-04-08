@@ -266,6 +266,8 @@ func (rt *_router) ForwardMessage(w http.ResponseWriter, r *http.Request, ps htt
 		messages = append(messages, mess)
 	}
 
+	w.WriteHeader(http.StatusCreated)
+
 	// Response
 	w.Header().Set("content-type", "application/json")
 	if err := json.NewEncoder(w).Encode(messages); err != nil {

@@ -104,6 +104,7 @@ func (rt *_router) CommentMessage(w http.ResponseWriter, r *http.Request, ps htt
 			BadRequest(w, err, "Error update the comment in the database: ")
 			return
 		}
+		w.WriteHeader(http.StatusOK)
 	} else {
 		// Insert the comment in the db
 		comment, err = rt.db.CreateComment(comment)
@@ -111,6 +112,7 @@ func (rt *_router) CommentMessage(w http.ResponseWriter, r *http.Request, ps htt
 			BadRequest(w, err, "Error insert the comment in the database: ")
 			return
 		}
+		w.WriteHeader(http.StatusCreated)
 	}
 
 	type CommentData struct {

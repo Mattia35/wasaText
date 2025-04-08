@@ -14,7 +14,7 @@ func (rt *_router) SearchUsers(w http.ResponseWriter, r *http.Request, ps httpro
 	// Get the search query
 	query := r.URL.Query().Get("query")
 	if query == "" {
-		http.Error(w, "Bad Request", http.StatusBadRequest)
+		BadRequest(w, nil, "Bad Request: ")
 		return
 	}
 	// control if the query is valid

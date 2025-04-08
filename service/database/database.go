@@ -70,7 +70,7 @@ type AppDatabase interface {
 	RemoveConv(convId int) error
 	GetMaxMessageId(convId int) (int, error)
 	RemoveMessage(messId int, convId int) error
-	CheckMessageSender(messId int, userId int) (bool, error)
+	CheckMessageSender(messId int, userId int, convId int) (bool, error)
 	GetMessagesByConvId(convId int) ([]structions.Message, error)
 	AddUserToListOfReadersOfMess(messId int, userId int, convId int) error
 	CheckIfUserHasReadMess(messId int, userId int) (bool, error)

@@ -46,7 +46,7 @@ func (rt *_router) DeleteMessage(w http.ResponseWriter, r *http.Request, ps http
 	}
 
 	// Check if the user is the sender of the message
-	check, err := rt.db.CheckMessageSender(messId, UserId)
+	check, err := rt.db.CheckMessageSender(messId, UserId, convId)
 	if err != nil {
 		InternalServerError(w, err, "Internal server error: ")
 		return
@@ -55,7 +55,7 @@ func (rt *_router) DeleteMessage(w http.ResponseWriter, r *http.Request, ps http
 		BadRequest(w, err, "User isn't the sender of the message: ")
 		return
 	}
-	// Get the max message id
+	// Get the previus max message id
 	maxMessId, err := rt.db.GetMaxMessageId(convId)
 	if err != nil {
 		InternalServerError(w, err, "Internal server error: ")

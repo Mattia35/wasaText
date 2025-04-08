@@ -96,6 +96,7 @@ func (rt *_router) CreateGroup(w http.ResponseWriter, r *http.Request, ps httpro
 	response.Group = group
 	response.ConversationId = conversation.ConvId
 
+	// Welcome message
 	message := structions.Message{
 		SenderId: UserId,
 		ConvId:   conversation.ConvId,
@@ -116,7 +117,7 @@ func (rt *_router) CreateGroup(w http.ResponseWriter, r *http.Request, ps httpro
 		return
 	}
 
-	// get users of the group
+	// get users of the group, to add them to the list of readers of the message
 	users, err := rt.db.GetUsersByGroupId(group.GroupId)
 	if err != nil {
 		BadRequest(w, err, "Error taking the users of the group: ")
