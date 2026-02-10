@@ -1,21 +1,14 @@
 # WASAText
 
-## Academic Project Information
-
 **WASAText** is a university project developed for the **Web and Software Architecture (WASA)** exam.
-
-**Project:** WASA Project – *“WASAText”*  
-**Version:** 1  
 
 As part of the exam, the project focuses on:
 - defining APIs using the **OpenAPI** standard  
 - designing and developing the **backend** in **Go**  
-- designing and developing the **frontend** in **JavaScript**  
+- designing and developing the **frontend** in **JavaScript and HTML/CSS**  
 - creating **Docker container images** for deployment  
 
 This repository contains a complete implementation of the WASAText system.
-
----
 
 ## Introduction
 
@@ -26,8 +19,6 @@ The application supports:
 - text and GIF messages  
 - private and group conversations  
 - message reactions and delivery/read indicators  
-
----
 
 ## Functional Overview
 
@@ -56,8 +47,6 @@ Inside a conversation, users can:
 - **One checkmark (✓)**: the message has been received  
 - **Two checkmarks (✓✓)**: the message has been read  
 
----
-
 ## Simplified Login
 
 WASAText uses a **simplified authentication mechanism** designed specifically for this academic project.
@@ -73,20 +62,9 @@ The backend returns a **user identifier** that must be included as a Bearer toke
 This authentication system is intentionally simplified and **not suitable for real-world applications**.  
 It is used only to focus on software architecture and API design concepts.
 
----
-
-## Requirements
-
-To run WASAText locally, the following are required:
-
-- **Docker**
-- A modern web browser (Chrome, Firefox, Edge, etc.)
-
-No additional dependencies are required for end users.
-
----
-
 ## Running the Application
+
+To run WASAText locally, only Docker is required. 
 
 ### Build Docker Images
 
@@ -97,7 +75,7 @@ docker build -t wasa-text-backend:latest -f Dockerfile.backend .
 docker build -t wasa-text-frontend:latest -f Dockerfile.frontend .
 ```
 
-Run the Containers
+### Run the Containers
 
 Run the backend and frontend in two separate terminal windows:
 
@@ -107,17 +85,19 @@ docker run -it --rm -p 8080:80 wasa-text-frontend:latest
 ```
 Both containers must be running for the application to work correctly.
 
-Accessing WASAText
+### Accessing WASAText
 
 Once the application is running, open your browser and go to:
 ```code
 http://localhost:8080
 ```
 Enter a username to log in and start using WASAText.
-Notes and Limitations
-	•	This project is intended for educational purposes only
-	•	The login system is intentionally simplified
-	•	No password recovery or identity verification is implemented
-	•	Data persistence depends on the local backend database
+
+## Notes and Limitations
+
+* This project is intended for educational purposes only
+* The login system is intentionally simplified
+* No password recovery or identity verification is implemented
+* Data persistence depends on the local backend database
 
 
